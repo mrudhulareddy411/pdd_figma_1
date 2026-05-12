@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PathFinder AI – Screens 51–80</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sand:#FDF6EE;--cream:#FAF0E6;--warm:#F5E6D3;--amber:#E8A45A;--rust:#C4612A;--deep:#2D1B0E;
+  --teal:#1A6B5A;--teal2:#2D9B82;--rose:#D9534F;--sky:#4A90B8;--gold:#C9973A;
+  --glass:rgba(255,255,255,0.55);--glass2:rgba(255,255,255,0.35);--glass3:rgba(255,255,255,0.2);
+  --border-g:rgba(255,255,255,0.6);--border-g2:rgba(200,160,100,0.3);
+  --text:#2D1B0E;--muted:#8B6A4A;--muted2:#B89070;
+  --shadow:0 8px 32px rgba(45,27,14,0.12);--shadow2:0 2px 12px rgba(45,27,14,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:linear-gradient(135deg,#F5E6D3 0%,#EDD5B8 30%,#E8C9A0 60%,#DDB878 100%);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);min-height:100vh;}
+
+.hdr{text-align:center;padding:48px 20px 24px;}
+.hdr h1{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--deep);letter-spacing:-1px;}
+.hdr p{color:var(--muted);font-size:14px;margin-top:6px;}
+.grid{display:flex;flex-direction:column;align-items:center;gap:36px;padding:32px 20px 80px;}
+
+/* PHONE */
+.phone{width:375px;border-radius:44px;overflow:hidden;border:1.5px solid var(--border-g);box-shadow:0 40px 80px rgba(45,27,14,0.2),0 0 0 1px rgba(255,255,255,0.5),inset 0 1px 0 rgba(255,255,255,0.8);background:var(--sand);position:relative;}
+.lbl{font-family:'Playfair Display',serif;font-size:13px;font-style:italic;color:var(--rust);margin-bottom:10px;text-align:center;letter-spacing:0.5px;}
+
+/* NOTCH */
+.notch{width:110px;height:28px;background:var(--deep);border-radius:0 0 18px 18px;margin:0 auto;}
+
+/* STATUS */
+.sbar{display:flex;justify-content:space-between;padding:8px 22px 0;font-size:11px;font-weight:600;color:var(--muted);}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border-g2);}
+.navt{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--deep);}
+.navback{color:var(--rust);font-size:20px;cursor:pointer;}
+.navicon{width:36px;height:36px;border-radius:10px;background:var(--glass);border:1px solid var(--border-g);display:flex;align-items:center;justify-content:center;font-size:16px;backdrop-filter:blur(8px);}
+
+/* BOTTOM TAB */
+.btab{display:flex;justify-content:space-around;padding:12px 0 20px;border-top:1px solid var(--border-g2);background:var(--glass);backdrop-filter:blur(12px);}
+.bitem{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;color:var(--muted2);font-weight:600;}
+.bitem.on{color:var(--rust);}
+.bicon{font-size:20px;}
+
+/* BUTTONS */
+.btn{background:var(--rust);color:white;border:none;border-radius:14px;padding:15px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;width:100%;cursor:pointer;}
+.btn-teal{background:var(--teal);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;}
+.btn-ghost{background:var(--glass);color:var(--deep);border:1px solid var(--border-g);border-radius:14px;padding:14px;font-size:15px;font-weight:600;width:100%;cursor:pointer;backdrop-filter:blur(8px);}
+.btn-outline{background:transparent;color:var(--rust);border:2px solid var(--rust);border-radius:14px;padding:13px;font-size:15px;font-weight:700;width:100%;cursor:pointer;}
+
+/* GLASS CARD */
+.gc{background:var(--glass);border:1px solid var(--border-g);border-radius:18px;padding:16px;backdrop-filter:blur(12px);}
+.gc2{background:var(--glass2);border:1px solid var(--border-g2);border-radius:18px;padding:16px;backdrop-filter:blur(8px);}
+
+/* BADGE */
+.b-amber{background:rgba(232,164,90,0.2);color:var(--rust);border:1px solid rgba(232,164,90,0.5);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block;}
+.b-teal{background:rgba(26,107,90,0.1);color:var(--teal);border:1px solid rgba(26,107,90,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block;}
+.b-rose{background:rgba(217,83,79,0.1);color:var(--rose);border:1px solid rgba(217,83,79,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block;}
+.b-sky{background:rgba(74,144,184,0.1);color:var(--sky);border:1px solid rgba(74,144,184,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block;}
+.b-gold{background:rgba(201,151,58,0.15);color:var(--gold);border:1px solid rgba(201,151,58,0.4);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block;}
+
+/* INPUT */
+.inp{width:100%;background:var(--glass);border:1px solid var(--border-g);border-radius:12px;padding:13px 14px;font-size:14px;color:var(--text);outline:none;font-family:'Plus Jakarta Sans',sans-serif;backdrop-filter:blur(8px);}
+.lbl-f{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.8px;}
+.fw{margin-bottom:14px;}
+
+/* PROG */
+.pbg{height:5px;background:rgba(45,27,14,0.1);border-radius:3px;}
+.pf{height:5px;border-radius:3px;background:var(--rust);}
+
+/* SCROLL */
+.scr{overflow-y:auto;max-height:580px;padding:16px 20px;}
+
+/* SECTION */
+.sec{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--deep);margin-bottom:10px;font-style:italic;}
+
+/* DIVIDER */
+.dv{height:1px;background:var(--border-g2);margin:12px 0;}
+
+/* AVATAR */
+.av{border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--rust));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0;}
+
+/* ROW */
+.row{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border-g2);}
+.row:last-child{border-bottom:none;}
+
+/* CHIP */
+.chip{border:1px solid var(--border-g2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-weight:500;background:var(--glass2);}
+.chip.on{background:var(--rust);color:white;border-color:var(--rust);}
+
+/* MBAR */
+.mb-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.mb-lbl{font-size:12px;color:var(--muted);width:110px;flex-shrink:0;}
+.mb-track{flex:1;height:6px;background:rgba(45,27,14,0.1);border-radius:3px;}
+.mb-fill{height:6px;border-radius:3px;}
+.mb-pct{font-size:12px;font-weight:700;width:36px;text-align:right;}
+
+/* STAT */
+.stat{background:var(--glass);border:1px solid var(--border-g);border-radius:14px;padding:14px;text-align:center;backdrop-filter:blur(8px);}
+.sv{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;}
+.sl{font-size:10px;color:var(--muted);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* TIMELINE */
+.tl{display:flex;gap:14px;margin-bottom:16px;}
+.tdw{display:flex;flex-direction:column;align-items:center;}
+.td{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-line{width:2px;flex:1;background:var(--border-g2);margin:4px 0;min-height:36px;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--deep) 0%,#5C3018 60%,var(--rust) 100%);padding:24px 20px 22px;color:white;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);}
+
+/* TOGGLE */
+.tog{width:44px;height:24px;border-radius:12px;position:relative;flex-shrink:0;}
+.tog.on{background:var(--teal);}
+.tog.off{background:rgba(45,27,14,0.15);}
+.tog::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:white;top:3px;box-shadow:0 2px 4px rgba(0,0,0,0.2);}
+.tog.on::after{right:3px;}
+.tog.off::after{left:3px;}
+.togrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;}
+
+/* PILL */
+.pill{background:var(--glass);border:1px solid var(--border-g2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);display:inline-block;margin:3px;}
+
+/* NOTIF */
+.nrow{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:14px;margin-bottom:8px;background:var(--glass);border:1px solid var(--border-g);backdrop-filter:blur(8px);}
+
+/* SCORE CIRCLE */
+.scring{width:76px;height:76px;border-radius:50%;border:3px solid var(--rust);display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(196,97,42,0.08);}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>PathFinder AI</h1>
+  <p>Screens 51–80 · Warm Glassmorphism Edition · All New Screens</p>
+</div>
+
+<div class="grid">
+
+<!-- 51: LANGUAGE SELECT -->
+<div>
+  <div class="lbl">51 · Language Selection</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Language</span><span></span></div>
+    <div class="scr">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Choose your preferred language for the app</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">English</div><div style="font-size:12px;color:var(--muted);">English (India)</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--rust);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;">✓</div>
+        </div>
+        <div class="gc" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">தமிழ்</div><div style="font-size:12px;color:var(--muted);">Tamil</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);"></div>
+        </div>
+        <div class="gc" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">हिंदी</div><div style="font-size:12px;color:var(--muted);">Hindi</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);"></div>
+        </div>
+        <div class="gc" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">తెలుగు</div><div style="font-size:12px;color:var(--muted);">Telugu</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);"></div>
+        </div>
+        <div class="gc" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">বাংলা</div><div style="font-size:12px;color:var(--muted);">Bengali</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);"></div>
+        </div>
+        <div class="gc" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:24px;">🇮🇳</span><div><div style="font-weight:700;font-size:14px;">ಕನ್ನಡ</div><div style="font-size:12px;color:var(--muted);">Kannada</div></div></div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);"></div>
+        </div>
+      </div>
+      <div style="margin-top:20px;"><button class="btn">Continue in English</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 52: GOAL SETTING -->
+<div>
+  <div class="lbl">52 · Career Goal Setting</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Set Your Goals</span><span></span></div>
+    <div class="scr">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px;">Define what success looks like for you</div>
+      <div class="sec">Primary Goal</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        <div style="background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">💼</span>
+          <div><div style="font-weight:700;font-size:14px;color:var(--rust);">Get my first job</div><div style="font-size:12px;color:var(--muted);">Within 6 months</div></div>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">🎓</span>
+          <div><div style="font-weight:600;font-size:14px;">Get into a top college</div><div style="font-size:12px;color:var(--muted);">For higher education</div></div>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">🔄</span>
+          <div><div style="font-weight:600;font-size:14px;">Switch careers</div><div style="font-size:12px;color:var(--muted);">Change my current field</div></div>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">🚀</span>
+          <div><div style="font-weight:600;font-size:14px;">Start my own business</div><div style="font-size:12px;color:var(--muted);">Entrepreneurship path</div></div>
+        </div>
+      </div>
+      <div class="sec">Target Timeline</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">
+        <div class="gc" style="text-align:center;padding:12px;"><div style="font-weight:700;">3 months</div><div style="font-size:11px;color:var(--muted);">Short term</div></div>
+        <div style="background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:12px;text-align:center;"><div style="font-weight:700;color:var(--rust);">6 months</div><div style="font-size:11px;color:var(--muted);">Medium term</div></div>
+        <div class="gc" style="text-align:center;padding:12px;"><div style="font-weight:700;">1 year</div><div style="font-size:11px;color:var(--muted);">Long term</div></div>
+        <div class="gc" style="text-align:center;padding:12px;"><div style="font-weight:700;">2+ years</div><div style="font-size:11px;color:var(--muted);">Patient approach</div></div>
+      </div>
+      <button class="btn">Save Goals</button>
+    </div>
+  </div>
+</div>
+
+<!-- 53: STUDY PLAN -->
+<div>
+  <div class="lbl">53 · Personalised Study Plan</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Study Plan</span><span class="navicon">📅</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(26,107,90,0.12),rgba(45,155,130,0.08));border-color:rgba(26,107,90,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;">Week 3 of 12</div><div style="font-size:12px;color:var(--muted);">Software Engineer Track</div></div>
+          <div style="font-size:26px;">📚</div>
+        </div>
+        <div class="pbg"><div class="pf" style="width:25%;background:var(--teal);"></div></div>
+        <div style="font-size:11px;color:var(--teal);margin-top:5px;font-weight:600;">25% Complete · 9 weeks remaining</div>
+      </div>
+      <div class="sec">Today's Schedule</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div class="gc" style="padding:12px 14px;display:flex;gap:12px;align-items:center;">
+          <div style="width:48px;height:48px;background:rgba(26,107,90,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🧠</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">Arrays & Linked Lists</div>
+            <div style="font-size:11px;color:var(--muted);">9:00 AM · 1 hour</div>
+            <div class="pbg" style="margin-top:5px;"><div class="pf" style="width:100%;background:var(--teal);"></div></div>
+          </div>
+          <span class="b-teal">Done</span>
+        </div>
+        <div class="gc" style="padding:12px 14px;display:flex;gap:12px;align-items:center;border-color:rgba(196,97,42,0.4);">
+          <div style="width:48px;height:48px;background:rgba(196,97,42,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💻</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">LeetCode Practice (5 problems)</div>
+            <div style="font-size:11px;color:var(--muted);">11:00 AM · 2 hours</div>
+            <div class="pbg" style="margin-top:5px;"><div class="pf" style="width:60%;"></div></div>
+          </div>
+          <span class="b-amber">In Progress</span>
+        </div>
+        <div class="gc" style="padding:12px 14px;display:flex;gap:12px;align-items:center;opacity:0.6;">
+          <div style="width:48px;height:48px;background:rgba(45,27,14,0.06);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📖</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">Chapter 4: Trees</div>
+            <div style="font-size:11px;color:var(--muted);">3:00 PM · 1.5 hours</div>
+          </div>
+          <span class="b-sky">Upcoming</span>
+        </div>
+      </div>
+      <div class="sec">This Week's Goal</div>
+      <div class="gc">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;">Problems solved</span><span style="font-weight:700;color:var(--rust);">12 / 20</span></div>
+        <div class="pbg"><div class="pf" style="width:60%;"></div></div>
+      </div>
+    </div>
+    <div class="btab">
+      <div class="bitem"><div class="bicon">🏠</div>Home</div>
+      <div class="bitem on"><div class="bicon">📚</div>Study</div>
+      <div class="bitem"><div class="bicon">📝</div>Quiz</div>
+      <div class="bitem"><div class="bicon">👤</div>Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- 54: COLLEGE APPLY -->
+<div>
+  <div class="lbl">54 · College Application Tracker</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Applications</span><span class="navicon">+</span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--sky);">4</div><div class="sl">Applied</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">2</div><div class="sl">In Review</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">1</div><div class="sl">Accepted</div></div>
+      </div>
+      <div class="sec">Your Applications</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:14px;border-left:3px solid var(--teal);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:14px;">IIT Bombay – B.Tech CSE</div><div style="font-size:12px;color:var(--muted);">Applied: Jan 10, 2025</div></div>
+            <span class="b-teal">Accepted ✓</span>
+          </div>
+          <div style="font-size:12px;color:var(--teal);margin-top:6px;">Cutoff: JEE 98 percentile · You scored: 99.1</div>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--gold);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:14px;">BITS Pilani – BE CSE</div><div style="font-size:12px;color:var(--muted);">Applied: Jan 15, 2025</div></div>
+            <span class="b-gold">In Review</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">Results expected: March 2025</div>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--sky);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:14px;">VIT Vellore – B.Tech</div><div style="font-size:12px;color:var(--muted);">Applied: Feb 2, 2025</div></div>
+            <span class="b-sky">Applied</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">Interview scheduled: Feb 20</div>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--rose);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:14px;">NIT Trichy – CSE</div><div style="font-size:12px;color:var(--muted);">Applied: Feb 5, 2025</div></div>
+            <span class="b-rose">Waitlisted</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">Position 12 on waitlist</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 55: CAREER TIMELINE (FUTURE) -->
+<div>
+  <div class="lbl">55 · Future Career Timeline</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Career Timeline</span><span class="navicon">📤</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;text-align:center;background:linear-gradient(135deg,rgba(45,27,14,0.05),rgba(196,97,42,0.08));">
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--muted);font-style:italic;">Projected path for</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--deep);">Software Engineer</div>
+      </div>
+      <div class="tl">
+        <div class="tdw"><div class="td" style="background:var(--teal);"></div><div class="tl-line" style="background:var(--teal);opacity:0.4;"></div></div>
+        <div style="flex:1;padding-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;"><div style="font-weight:700;font-size:13px;">Fresher / Junior SWE</div><span class="b-teal">Now</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">0–2 years · ₹4–10 LPA</div>
+          <div style="font-size:12px;color:var(--muted);">Learning, mentorship, building skills</div>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="tdw"><div class="td" style="background:var(--amber);"></div><div class="tl-line" style="opacity:0.3;"></div></div>
+        <div style="flex:1;padding-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;"><div style="font-weight:700;font-size:13px;">Mid-Level SWE</div><span class="b-amber">2–4 yrs</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">₹12–22 LPA · Team lead potential</div>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="tdw"><div class="td" style="background:var(--rust);"></div><div class="tl-line" style="opacity:0.3;"></div></div>
+        <div style="flex:1;padding-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;"><div style="font-weight:700;font-size:13px;">Senior Engineer</div><span class="b-rose">4–7 yrs</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">₹25–40 LPA · Mentoring juniors</div>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="tdw"><div class="td" style="background:var(--gold);"></div><div class="tl-line" style="opacity:0.3;"></div></div>
+        <div style="flex:1;padding-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;"><div style="font-weight:700;font-size:13px;">Tech Lead / Architect</div><span class="b-gold">7–10 yrs</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">₹40–70 LPA · System ownership</div>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="tdw"><div class="td" style="background:var(--deep);"></div></div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:13px;">Engineering Manager / CTO</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">10+ yrs · ₹80L+ or Founding your startup</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 56: AI CHAT ADVISOR -->
+<div>
+  <div class="lbl">56 · AI Career Advisor Chat</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">AI Advisor</span><span class="navicon">⋯</span></div>
+    <div style="overflow-y:auto;max-height:540px;padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--rust),var(--amber));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+        <div style="background:var(--glass);border:1px solid var(--border-g);border-radius:18px 18px 18px 4px;padding:12px 14px;max-width:75%;backdrop-filter:blur(8px);">
+          <div style="font-size:13px;line-height:1.6;">Hello Arjun! 👋 I'm your AI career advisor. Based on your profile, you're a great fit for Software Engineering. What would you like to explore today?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-direction:row-reverse;">
+        <div class="av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;">AK</div>
+        <div style="background:var(--rust);border-radius:18px 18px 4px 18px;padding:12px 14px;max-width:75%;">
+          <div style="font-size:13px;color:white;line-height:1.6;">What skills do I need to crack Google interviews?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--rust),var(--amber));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+        <div style="background:var(--glass);border:1px solid var(--border-g);border-radius:18px 18px 18px 4px;padding:12px 14px;max-width:80%;backdrop-filter:blur(8px);">
+          <div style="font-size:13px;line-height:1.6;">Great question! For Google, focus on:<br><br>1️⃣ <strong>DSA</strong> — Arrays, Trees, Graphs, DP<br>2️⃣ <strong>System Design</strong> — Scalability basics<br>3️⃣ <strong>Coding</strong> — LeetCode Medium/Hard<br>4️⃣ <strong>Behavioral</strong> — STAR method<br><br>Want me to create a personalised 3-month plan?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <div style="background:var(--glass2);border:1px solid var(--border-g2);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--rust);font-weight:600;">Yes, create plan!</div>
+        <div style="background:var(--glass2);border:1px solid var(--border-g2);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--muted);font-weight:500;">What about Amazon?</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border-g2);display:flex;gap:10px;align-items:center;">
+      <input class="inp" placeholder="Ask anything about your career..." style="flex:1;">
+      <button class="btn" style="width:44px;height:44px;border-radius:12px;padding:0;font-size:18px;">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- 57: INTERNSHIP TRACKER -->
+<div>
+  <div class="lbl">57 · Internship Tracker</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Internships</span><span class="navicon">+</span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">8</div><div class="sl">Applied</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">3</div><div class="sl">Interviews</div></div>
+      </div>
+      <div class="sec">Active Applications</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">Software Intern – Infosys</div><div style="font-size:11px;color:var(--muted);">Applied Apr 10 · Bangalore</div></div>
+            <span class="b-gold">Interview</span>
+          </div>
+          <div style="font-size:12px;color:var(--teal);font-weight:600;">📅 Interview: Apr 28, 10 AM</div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button style="flex:1;background:var(--teal);color:white;border:none;border-radius:8px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;">Prepare</button>
+            <button style="flex:1;background:var(--glass);border:1px solid var(--border-g);border-radius:8px;padding:7px;font-size:11px;color:var(--muted);cursor:pointer;">View JD</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">Data Intern – Freshworks</div><div style="font-size:11px;color:var(--muted);">Applied Apr 8 · Chennai</div></div>
+            <span class="b-sky">Applied</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Awaiting response · 8 days ago</div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">SWE Intern – Zoho</div><div style="font-size:11px;color:var(--muted);">Applied Apr 1 · Remote</div></div>
+            <span class="b-rose">Rejected</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Keep going! Each rejection is a learning.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 58: PEER COMPARISON -->
+<div>
+  <div class="lbl">58 · Peer Comparison</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Peer Insights</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;text-align:center;background:linear-gradient(135deg,rgba(232,164,90,0.12),rgba(196,97,42,0.08));">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">YOUR STANDING AMONG PEERS</div>
+        <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--rust);">Top 18%</div>
+        <div style="font-size:12px;color:var(--muted);">Among 12,400 students your age</div>
+      </div>
+      <div class="sec">Skill Comparison</div>
+      <div style="margin-bottom:16px;">
+        <div class="mb-row"><div class="mb-lbl">Python</div><div class="mb-track"><div class="mb-fill" style="width:80%;background:var(--rust);"></div></div><div class="mb-pct" style="color:var(--rust);">80%</div></div>
+        <div style="font-size:10px;color:var(--muted);margin:-4px 0 8px 110px;">Avg peer: 55% · You're ahead!</div>
+        <div class="mb-row"><div class="mb-lbl">DSA</div><div class="mb-track"><div class="mb-fill" style="width:55%;background:var(--gold);"></div></div><div class="mb-pct" style="color:var(--gold);">55%</div></div>
+        <div style="font-size:10px;color:var(--muted);margin:-4px 0 8px 110px;">Avg peer: 60% · Close gap!</div>
+        <div class="mb-row"><div class="mb-lbl">Communication</div><div class="mb-track"><div class="mb-fill" style="width:75%;background:var(--teal);"></div></div><div class="mb-pct" style="color:var(--teal);">75%</div></div>
+        <div style="font-size:10px;color:var(--muted);margin:-4px 0 8px 110px;">Avg peer: 50% · You're ahead!</div>
+      </div>
+      <div class="sec">What Top Peers Are Doing</div>
+      <div class="gc">
+        <div class="row"><span style="font-size:16px;">📚</span><div style="flex:1;margin-left:8px;font-size:13px;">Solving 2+ LeetCode problems/day</div></div>
+        <div class="row"><span style="font-size:16px;">🏗️</span><div style="flex:1;margin-left:8px;font-size:13px;">Building personal projects on GitHub</div></div>
+        <div class="row"><span style="font-size:16px;">🤝</span><div style="flex:1;margin-left:8px;font-size:13px;">Attending hackathons regularly</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 59: MOCK TEST RESULT -->
+<div>
+  <div class="lbl">59 · Mock Test Result</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Test Result</span><span class="navicon">📤</span></div>
+    <div class="scr">
+      <div class="gc" style="text-align:center;margin-bottom:16px;background:linear-gradient(135deg,rgba(26,107,90,0.1),rgba(45,155,130,0.07));">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">APTITUDE TEST · APRIL 2025</div>
+        <div class="scring" style="margin:0 auto 10px;">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--teal);">72</div>
+          <div style="font-size:9px;color:var(--muted);">/ 100</div>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--deep);">Good Performance!</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Better than 68% of test takers</div>
+      </div>
+      <div class="sec">Section-wise Scores</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div class="gc" style="padding:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-weight:600;font-size:13px;">Quantitative Aptitude</div><div style="font-size:11px;color:var(--muted);">20 questions · 18 min</div></div>
+          <div style="text-align:right;"><div style="font-weight:700;font-size:16px;color:var(--teal);">18/25</div><div style="font-size:10px;color:var(--muted);">72%</div></div>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-weight:600;font-size:13px;">Logical Reasoning</div><div style="font-size:11px;color:var(--muted);">15 questions · 12 min</div></div>
+          <div style="text-align:right;"><div style="font-weight:700;font-size:16px;color:var(--gold);">11/15</div><div style="font-size:10px;color:var(--muted);">73%</div></div>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-weight:600;font-size:13px;">Verbal Ability</div><div style="font-size:11px;color:var(--muted);">15 questions · 10 min</div></div>
+          <div style="text-align:right;"><div style="font-weight:700;font-size:16px;color:var(--rust);">10/15</div><div style="font-size:10px;color:var(--muted);">67%</div></div>
+        </div>
+      </div>
+      <button class="btn">Review Wrong Answers</button>
+      <button class="btn-ghost" style="margin-top:10px;">Take Another Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- 60: CAREER QUIZ MULTI-SELECT -->
+<div>
+  <div class="lbl">60 · Quiz Multi-Select Question</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Question 6 of 10</span><span style="font-size:12px;color:var(--rust);font-weight:600;">Skip</span></div>
+    <div style="padding:16px 20px;">
+      <div class="pbg" style="margin-bottom:18px;"><div class="pf" style="width:60%;"></div></div>
+      <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;line-height:1.35;margin-bottom:6px;">Which subjects do you enjoy the most?</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Select all that apply (choose at least 2)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">🔢</div>
+          <div style="font-size:13px;font-weight:600;color:var(--rust);">Mathematics</div>
+        </div>
+        <div style="background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">💻</div>
+          <div style="font-size:13px;font-weight:600;color:var(--rust);">Computer Science</div>
+        </div>
+        <div class="gc" style="padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">🔬</div>
+          <div style="font-size:13px;font-weight:600;">Physics</div>
+        </div>
+        <div class="gc" style="padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">🧬</div>
+          <div style="font-size:13px;font-weight:600;">Biology</div>
+        </div>
+        <div class="gc" style="padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">📖</div>
+          <div style="font-size:13px;font-weight:600;">Literature</div>
+        </div>
+        <div class="gc" style="padding:14px 12px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:4px;">🌍</div>
+          <div style="font-size:13px;font-weight:600;">Social Studies</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-ghost" style="flex:1;">← Back</button>
+        <button class="btn" style="flex:2;">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 61: SUBSCRIPTION SUCCESS -->
+<div>
+  <div class="lbl">61 · Subscription Activated</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="background:linear-gradient(145deg,var(--deep),#5C3018,var(--rust));min-height:700px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+      <div style="width:90px;height:90px;border-radius:28px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:24px;">⚡</div>
+      <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:white;margin-bottom:8px;">You're now Pro!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:28px;line-height:1.7;">Your premium subscription is active. Unlock everything PathFinder has to offer.</div>
+      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:18px;padding:18px;width:100%;margin-bottom:24px;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:white;"><span style="color:#90EE90;">✓</span> Unlimited career quizzes</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:white;"><span style="color:#90EE90;">✓</span> AI resume builder unlocked</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:white;"><span style="color:#90EE90;">✓</span> Unlimited mock interviews</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:white;"><span style="color:#90EE90;">✓</span> 1 mentor session/month</div>
+        </div>
+      </div>
+      <button style="background:white;color:var(--deep);border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;">Explore Pro Features</button>
+    </div>
+  </div>
+</div>
+
+<!-- 62: DARK MODE SETTINGS -->
+<div>
+  <div class="lbl">62 · Appearance & Theme</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Appearance</span><span></span></div>
+    <div class="scr">
+      <div class="sec">App Theme</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="border-radius:14px;overflow:hidden;border:2px solid var(--rust);">
+          <div style="height:60px;background:linear-gradient(135deg,#FDF6EE,#F5E6D3);"></div>
+          <div style="padding:8px;text-align:center;background:white;"><div style="font-size:11px;font-weight:700;color:var(--rust);">Warm Light</div></div>
+        </div>
+        <div style="border-radius:14px;overflow:hidden;border:1.5px solid var(--border-g2);">
+          <div style="height:60px;background:linear-gradient(135deg,#0A0A0F,#1A1A28);"></div>
+          <div style="padding:8px;text-align:center;background:white;"><div style="font-size:11px;font-weight:600;color:var(--muted);">Night</div></div>
+        </div>
+        <div style="border-radius:14px;overflow:hidden;border:1.5px solid var(--border-g2);">
+          <div style="height:60px;background:linear-gradient(135deg,#F0F4FF,#E8EFFF);"></div>
+          <div style="padding:8px;text-align:center;background:white;"><div style="font-size:11px;font-weight:600;color:var(--muted);">Cool</div></div>
+        </div>
+      </div>
+      <div class="sec">Font Size</div>
+      <div class="gc" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:11px;color:var(--muted);">A</span>
+          <div style="flex:1;height:4px;background:rgba(45,27,14,0.1);border-radius:2px;margin:0 12px;position:relative;"><div style="position:absolute;left:55%;top:-4px;width:12px;height:12px;background:var(--rust);border-radius:50%;"></div></div>
+          <span style="font-size:18px;color:var(--muted);">A</span>
+        </div>
+        <div style="font-size:13px;color:var(--muted);text-align:center;">Medium (Default)</div>
+      </div>
+      <div class="sec">Preferences</div>
+      <div class="gc">
+        <div class="togrow"><span style="font-size:13px;">Compact mode</span><div class="tog off"></div></div>
+        <div class="dv"></div>
+        <div class="togrow"><span style="font-size:13px;">Bold text</span><div class="tog off"></div></div>
+        <div class="dv"></div>
+        <div class="togrow"><span style="font-size:13px;">Reduce animations</span><div class="tog off"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 63: EXPERT WEBINAR -->
+<div>
+  <div class="lbl">63 · Live Webinar Screen</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Live Events</span><span class="navicon">🔔</span></div>
+    <div class="scr">
+      <div style="background:linear-gradient(135deg,var(--deep),#5C3018);border-radius:18px;padding:18px;margin-bottom:16px;color:white;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(217,83,79,0.3);border-radius:20px;padding:4px 12px;margin-bottom:12px;">
+          <div style="width:7px;height:7px;background:#FF6B6B;border-radius:50%;"></div>
+          <span style="font-size:11px;font-weight:700;">LIVE NOW</span>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">How to Land Your First Tech Job in 90 Days</div>
+        <div style="font-size:12px;opacity:0.7;margin-bottom:14px;">With Ravi Sharma, Senior Engineer at Google</div>
+        <div style="display:flex;justify-content:space-between;">
+          <div><div style="font-size:18px;font-weight:800;">2,418</div><div style="font-size:10px;opacity:0.6;">Watching now</div></div>
+          <div><div style="font-size:18px;font-weight:800;">45 min</div><div style="font-size:10px;opacity:0.6;">Remaining</div></div>
+        </div>
+        <button style="background:white;color:var(--deep);border:none;border-radius:12px;padding:11px;font-size:14px;font-weight:700;width:100%;margin-top:14px;cursor:pointer;">Join Live Now 🎥</button>
+      </div>
+      <div class="sec">Upcoming Webinars</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:48px;height:48px;background:rgba(232,164,90,0.15);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;"><div style="font-weight:800;font-size:16px;color:var(--rust);">28</div><div style="font-size:9px;color:var(--muted);">APR</div></div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13px;">Cracking Product Manager Interviews</div>
+              <div style="font-size:11px;color:var(--muted);">3:00 PM · Priya Krishnan, Flipkart</div>
+            </div>
+            <button style="background:var(--rust);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">Register</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:48px;height:48px;background:rgba(26,107,90,0.1);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;"><div style="font-weight:800;font-size:16px;color:var(--teal);">2</div><div style="font-size:9px;color:var(--muted);">MAY</div></div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13px;">AI & ML Careers in 2025</div>
+              <div style="font-size:11px;color:var(--muted);">6:00 PM · Dr. Aryan Mehta, Amazon</div>
+            </div>
+            <button style="background:var(--teal);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">Register</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 64: WISHLIST / DREAM COMPANIES -->
+<div>
+  <div class="lbl">64 · Dream Companies List</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Dream Companies</span><span class="navicon">+</span></div>
+    <div class="scr">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Track your target companies and get notified when they hire</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">G</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Google</div><div style="font-size:12px;color:var(--muted);">48 open roles match your profile</div></div>
+            <span class="b-teal">Hiring</span>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button style="flex:1;background:var(--teal);color:white;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;">View Jobs</button>
+            <button style="flex:1;background:var(--glass);border:1px solid var(--border-g);border-radius:8px;padding:8px;font-size:12px;color:var(--muted);cursor:pointer;">Set Alert</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#FF6900,#FFB800);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">A</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Amazon</div><div style="font-size:12px;color:var(--muted);">22 open roles match your profile</div></div>
+            <span class="b-amber">Hiring</span>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0A66C2,#0F80FF);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">M</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Microsoft</div><div style="font-size:12px;color:var(--muted);">Alert set · No new roles</div></div>
+            <span class="b-sky">On Watch</span>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;border:1.5px dashed var(--border-g2);background:rgba(255,255,255,0.3);text-align:center;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:4px;">+</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;">Add Dream Company</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 65: NETWORK CONNECTIONS -->
+<div>
+  <div class="lbl">65 · Professional Network</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">My Network</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">48</div><div class="sl">Connections</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">12</div><div class="sl">Mentors</div></div>
+      </div>
+      <div class="sec">Suggested Connections</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;">
+          <div class="av" style="width:44px;height:44px;font-size:14px;">SK</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Siddharth K</div><div style="font-size:11px;color:var(--muted);">SWE at Swiggy · VIT alumni</div><div style="font-size:11px;color:var(--rust);">3 mutual connections</div></div>
+          <button class="btn" style="width:auto;padding:7px 14px;font-size:12px;">Connect</button>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;">
+          <div class="av" style="width:44px;height:44px;font-size:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));">DM</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Divya M</div><div style="font-size:11px;color:var(--muted);">Data Scientist at Razorpay</div><div style="font-size:11px;color:var(--rust);">Same career interest</div></div>
+          <button class="btn" style="width:auto;padding:7px 14px;font-size:12px;">Connect</button>
+        </div>
+      </div>
+      <div class="sec">Recent Connections</div>
+      <div class="gc">
+        <div class="row"><div class="av" style="width:36px;height:36px;font-size:12px;">RS</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Ravi Sharma</div><div style="font-size:11px;color:var(--muted);">Mentor · Google</div></div><span class="b-teal">Mentor</span></div>
+        <div class="row"><div class="av" style="width:36px;height:36px;font-size:12px;background:linear-gradient(135deg,var(--sky),#67B5D8);">AJ</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Ananya J</div><div style="font-size:11px;color:var(--muted);">Peer · VIT Vellore</div></div><span class="b-sky">Peer</span></div>
+        <div class="row"><div class="av" style="width:36px;height:36px;font-size:12px;background:linear-gradient(135deg,var(--gold),var(--amber));">VK</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Vikram K</div><div style="font-size:11px;color:var(--muted);">Alumni · Now at Flipkart</div></div><span class="b-gold">Alumni</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 66: SCHOLARSHIP FINDER -->
+<div>
+  <div class="lbl">66 · Scholarship Finder</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Scholarships</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(201,151,58,0.15),rgba(232,164,90,0.1));border-color:rgba(201,151,58,0.4);">
+        <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:4px;">3 scholarships match you!</div>
+        <div style="font-size:12px;color:var(--muted);">Based on your profile and career goals</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">All</div>
+        <div class="chip">Government</div>
+        <div class="chip">Private</div>
+        <div class="chip">Merit-Based</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:14px;border-left:3px solid var(--gold);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="flex:1;margin-right:8px;"><div style="font-weight:700;font-size:13px;">PM Scholarship Scheme</div><div style="font-size:11px;color:var(--muted);">Government · Merit-based</div></div>
+            <span class="b-gold">₹75,000/yr</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Deadline: June 30, 2025 · For engineering students</div>
+          <button class="btn" style="margin-top:10px;padding:9px;font-size:12px;">Apply Now</button>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--teal);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="flex:1;margin-right:8px;"><div style="font-weight:700;font-size:13px;">Tata Trust Scholarship</div><div style="font-size:11px;color:var(--muted);">Private · Need + Merit</div></div>
+            <span class="b-teal">₹1.2L/yr</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Deadline: May 15, 2025 · For UG students</div>
+          <button class="btn-outline" style="margin-top:10px;padding:9px;font-size:12px;">Check Eligibility</button>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--sky);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="flex:1;margin-right:8px;"><div style="font-weight:700;font-size:13px;">Google Generation Scholarship</div><div style="font-size:11px;color:var(--muted);">Corporate · CS Students</div></div>
+            <span class="b-sky">$1,000</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Deadline: July 1, 2025 · International</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 67: SKILL BADGES EARNED -->
+<div>
+  <div class="lbl">67 · Skill Certificates</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">My Certificates</span><span class="navicon">📤</span></div>
+    <div class="scr">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Certificates earned through PathFinder AI</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:linear-gradient(135deg,var(--deep),#5C3018);border-radius:18px;padding:18px;color:white;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+          <div style="font-size:11px;opacity:0.6;letter-spacing:2px;margin-bottom:8px;">PATHFINDER AI · CERTIFICATE</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:4px;">Career Clarity</div>
+          <div style="font-size:12px;opacity:0.7;margin-bottom:12px;">Completed Career Assessment Quiz</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+            <div><div style="font-size:13px;font-weight:700;">Arjun Kumar</div><div style="font-size:10px;opacity:0.6;">April 2025</div></div>
+            <button style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;">Download</button>
+          </div>
+        </div>
+        <div style="background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:18px;padding:18px;color:white;">
+          <div style="font-size:11px;opacity:0.6;letter-spacing:2px;margin-bottom:8px;">PATHFINDER AI · CERTIFICATE</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:4px;">Python Fundamentals</div>
+          <div style="font-size:12px;opacity:0.7;margin-bottom:12px;">Passed Skill Assessment · Score: 87%</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+            <div><div style="font-size:13px;font-weight:700;">Arjun Kumar</div><div style="font-size:10px;opacity:0.6;">March 2025</div></div>
+            <button style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;">Download</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:16px;text-align:center;border:1.5px dashed var(--border-g2);">
+          <div style="font-size:24px;margin-bottom:6px;">🏅</div>
+          <div style="font-weight:600;font-size:13px;color:var(--muted);">Complete more assessments to earn certificates</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 68: BLOG / ARTICLES -->
+<div>
+  <div class="lbl">68 · Career Articles</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span></span><span class="navt">Read & Learn</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">For You</div>
+        <div class="chip">Tech</div>
+        <div class="chip">Career Tips</div>
+        <div class="chip">Salaries</div>
+      </div>
+      <div class="gc" style="margin-bottom:12px;">
+        <div style="background:linear-gradient(135deg,rgba(232,164,90,0.2),rgba(196,97,42,0.1));border-radius:12px;height:100px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:12px;">💡</div>
+        <span class="b-amber" style="margin-bottom:8px;display:inline-block;">CAREER TIPS</span>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;line-height:1.4;margin-bottom:6px;">7 mistakes freshers make in their first interview</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;">Avoid these common pitfalls and boost your chances of landing the offer you deserve.</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:10px;">5 min read · 4,200 reads</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="gc" style="padding:12px;">
+          <div style="font-size:28px;margin-bottom:8px;">📊</div>
+          <div style="font-weight:700;font-size:12px;line-height:1.4;">Top 10 highest-paying careers in India 2025</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:5px;">3 min · 8.1K reads</div>
+        </div>
+        <div class="gc" style="padding:12px;">
+          <div style="font-size:28px;margin-bottom:8px;">🚀</div>
+          <div style="font-weight:700;font-size:12px;line-height:1.4;">How to negotiate your first salary offer</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:5px;">4 min · 6.3K reads</div>
+        </div>
+      </div>
+    </div>
+    <div class="btab">
+      <div class="bitem"><div class="bicon">🏠</div>Home</div>
+      <div class="bitem on"><div class="bicon">📖</div>Learn</div>
+      <div class="bitem"><div class="bicon">📝</div>Quiz</div>
+      <div class="bitem"><div class="bicon">👤</div>Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- 69: ACCOUNT SECURITY -->
+<div>
+  <div class="lbl">69 · Account Security</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Security</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(26,107,90,0.1),rgba(45,155,130,0.07));border-color:rgba(26,107,90,0.3);">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:rgba(26,107,90,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;">🛡️</div>
+          <div><div style="font-weight:700;font-size:14px;">Account is Secure</div><div style="font-size:12px;color:var(--teal);">All security checks passed</div></div>
+        </div>
+      </div>
+      <div class="sec">Login & Password</div>
+      <div class="gc" style="margin-bottom:14px;">
+        <div class="row"><span style="font-size:16px;">🔑</span><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Password</div><div style="font-size:11px;color:var(--muted);">Last changed 2 months ago</div></div><span style="font-size:13px;color:var(--rust);font-weight:600;">Change</span></div>
+        <div class="row"><span style="font-size:16px;">📱</span><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Two-Factor Auth</div><div style="font-size:11px;color:var(--teal);">Enabled via SMS</div></div><div class="tog on"></div></div>
+        <div class="row"><span style="font-size:16px;">👆</span><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Biometric Login</div><div style="font-size:11px;color:var(--muted);">Face ID / Fingerprint</div></div><div class="tog on"></div></div>
+      </div>
+      <div class="sec">Active Sessions</div>
+      <div class="gc">
+        <div class="row"><span style="font-size:16px;">📱</span><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">iPhone 14 · Current</div><div style="font-size:11px;color:var(--teal);">Chennai · Active now</div></div><span class="b-teal">This device</span></div>
+        <div class="row"><span style="font-size:16px;">💻</span><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">MacBook Pro</div><div style="font-size:11px;color:var(--muted);">Chennai · 2 hours ago</div></div><span style="font-size:12px;color:var(--rose);font-weight:600;">Remove</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 70: LOADING SKELETON -->
+<div>
+  <div class="lbl">70 · Loading Skeleton State</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span></span><span class="navt">Home</span><span class="navicon">🔔</span></div>
+    <div style="padding:16px 20px;">
+      <style>
+        @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+        .sk{background:linear-gradient(90deg,rgba(45,27,14,0.06) 25%,rgba(45,27,14,0.12) 50%,rgba(45,27,14,0.06) 75%);background-size:400px 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+      </style>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;">
+        <div class="sk" style="width:52px;height:52px;border-radius:50%;"></div>
+        <div><div class="sk" style="width:140px;height:14px;margin-bottom:7px;"></div><div class="sk" style="width:100px;height:11px;"></div></div>
+      </div>
+      <div class="sk" style="width:100%;height:100px;border-radius:18px;margin-bottom:16px;"></div>
+      <div class="sk" style="width:80px;height:13px;margin-bottom:10px;"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div style="display:flex;gap:12px;align-items:center;background:rgba(45,27,14,0.04);border-radius:14px;padding:14px;">
+          <div class="sk" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"></div>
+          <div style="flex:1;"><div class="sk" style="width:70%;height:13px;margin-bottom:7px;"></div><div class="sk" style="width:50%;height:10px;margin-bottom:7px;"></div><div class="sk" style="width:100%;height:5px;border-radius:3px;"></div></div>
+          <div class="sk" style="width:36px;height:20px;border-radius:10px;"></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;background:rgba(45,27,14,0.04);border-radius:14px;padding:14px;">
+          <div class="sk" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"></div>
+          <div style="flex:1;"><div class="sk" style="width:60%;height:13px;margin-bottom:7px;"></div><div class="sk" style="width:40%;height:10px;margin-bottom:7px;"></div><div class="sk" style="width:100%;height:5px;border-radius:3px;"></div></div>
+          <div class="sk" style="width:36px;height:20px;border-radius:10px;"></div>
+        </div>
+      </div>
+      <div class="sk" style="width:80px;height:13px;margin-bottom:10px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="sk" style="height:80px;border-radius:14px;"></div>
+        <div class="sk" style="height:80px;border-radius:14px;"></div>
+      </div>
+    </div>
+    <div class="btab">
+      <div class="bitem on"><div class="bicon">🏠</div>Home</div>
+      <div class="bitem"><div class="bicon">🔍</div>Explore</div>
+      <div class="bitem"><div class="bicon">📝</div>Quiz</div>
+      <div class="bitem"><div class="bicon">👤</div>Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- 71: RATING PROMPT -->
+<div>
+  <div class="lbl">71 · In-App Rating Prompt</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="padding:0;">
+      <div style="background:rgba(45,27,14,0.4);height:100%;position:relative;">
+        <!-- blurred background -->
+        <div style="padding:16px 20px;filter:blur(2px);opacity:0.4;">
+          <div class="hero" style="margin-bottom:16px;border-radius:0;"><div style="font-size:20px;font-weight:800;color:white;">Good morning, Arjun 👋</div></div>
+        </div>
+        <!-- modal -->
+        <div style="position:absolute;bottom:0;left:0;right:0;background:var(--sand);border-radius:24px 24px 0 0;padding:28px 24px;border-top:1px solid var(--border-g);">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="font-size:44px;margin-bottom:12px;">⭐</div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;">Enjoying PathFinder AI?</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;">Your rating helps us reach more students who need career guidance</div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:12px;font-size:40px;margin-bottom:20px;">⭐⭐⭐⭐⭐</div>
+          <button class="btn">Rate on Play Store ⭐</button>
+          <button class="btn-ghost" style="margin-top:10px;">Maybe Later</button>
+          <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted2);">We promise to keep improving based on your feedback</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 72: REFERRAL PROGRAM -->
+<div>
+  <div class="lbl">72 · Refer & Earn</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Refer & Earn</span><span></span></div>
+    <div class="scr">
+      <div style="background:linear-gradient(135deg,var(--deep),#5C3018);border-radius:20px;padding:22px;color:white;text-align:center;margin-bottom:18px;">
+        <div style="font-size:40px;margin-bottom:12px;">🎁</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:6px;">Earn ₹100 per referral</div>
+        <div style="font-size:13px;opacity:0.7;line-height:1.6;">Invite friends to PathFinder AI and earn credit when they sign up. They get 1 month free!</div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:14px;margin-top:16px;">
+          <div style="font-size:11px;opacity:0.6;margin-bottom:4px;">YOUR REFERRAL CODE</div>
+          <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;letter-spacing:3px;">ARJUN24</div>
+        </div>
+        <button style="background:white;color:var(--deep);border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;width:100%;margin-top:14px;cursor:pointer;">Share Code 📤</button>
+      </div>
+      <div class="sec">Your Earnings</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">3</div><div class="sl">Invited</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">2</div><div class="sl">Joined</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">₹200</div><div class="sl">Earned</div></div>
+      </div>
+      <button class="btn-outline">Withdraw Earnings</button>
+    </div>
+  </div>
+</div>
+
+<!-- 73: ACCOUNT DELETION CONFIRM -->
+<div>
+  <div class="lbl">73 · Delete Account Warning</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Delete Account</span><span></span></div>
+    <div style="padding:28px 24px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="width:80px;height:80px;border-radius:24px;background:rgba(217,83,79,0.1);border:1.5px solid rgba(217,83,79,0.3);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;">⚠️</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--rose);">Delete Account?</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;">This action is permanent and cannot be undone. All your data will be erased.</div>
+      </div>
+      <div class="gc" style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">This will permanently delete:</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--rose);"><span>✗</span>Your profile and settings</div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--rose);"><span>✗</span>All quiz results and progress</div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--rose);"><span>✗</span>Saved careers and notes</div>
+          <div style="display:flex;gap:8px;font-size:13px;color:var(--rose);"><span>✗</span>Mentor sessions history</div>
+        </div>
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Type "DELETE" to confirm</label>
+        <input class="inp" placeholder="DELETE">
+      </div>
+      <button style="background:var(--rose);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-bottom:10px;">Permanently Delete Account</button>
+      <button class="btn-ghost">Cancel, Keep My Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- 74: STEP-BY-STEP ONBOARDING FLOW -->
+<div>
+  <div class="lbl">74 · Profile Setup Wizard</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Setup Profile</span><span style="font-size:12px;color:var(--muted);">2 / 4</span></div>
+    <div style="padding:16px 20px;">
+      <div class="pbg" style="margin-bottom:20px;"><div class="pf" style="width:50%;"></div></div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:6px;">Tell us about your education</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">This helps us tailor your career suggestions</div>
+      <div class="fw">
+        <label class="lbl-f">Current Education Level</label>
+        <select class="inp" style="appearance:none;">
+          <option>Undergraduate (B.Tech / B.E.)</option>
+          <option>12th Grade / HSC</option>
+          <option>Postgraduate</option>
+          <option>Working Professional</option>
+        </select>
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Field of Study</label>
+        <input class="inp" placeholder="e.g. Computer Science Engineering">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">College Name</label>
+        <input class="inp" placeholder="e.g. VIT Vellore">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Expected Graduation Year</label>
+        <input class="inp" placeholder="e.g. 2025">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn-ghost" style="flex:1;">← Back</button>
+        <button class="btn" style="flex:2;">Continue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 75: SALARY NEGOTIATION GUIDE -->
+<div>
+  <div class="lbl">75 · Salary Negotiation Guide</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Negotiate Salary</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(201,151,58,0.12),rgba(232,164,90,0.08));border-color:rgba(201,151,58,0.4);">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="font-size:32px;">💰</div>
+          <div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;">You deserve more!</div><div style="font-size:12px;color:var(--muted);">Most freshers leave 20–30% salary on the table</div></div>
+        </div>
+      </div>
+      <div class="sec">Negotiation Script</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(196,97,42,0.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--rust);flex-shrink:0;">1</div>
+            <div><div style="font-weight:700;font-size:13px;">Research market rate first</div><div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.6;">Know your worth. Check Glassdoor, LinkedIn Salary for your role + city + experience.</div></div>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(26,107,90,0.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--teal);flex-shrink:0;">2</div>
+            <div><div style="font-weight:700;font-size:13px;">Wait for them to make an offer</div><div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.6;">Never reveal your expected salary first. Let them anchor first.</div></div>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(201,151,58,0.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--gold);flex-shrink:0;">3</div>
+            <div><div style="font-weight:700;font-size:13px;">Counter 20% above their offer</div><div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.6;">You'll likely meet in the middle. Be confident and back it with data.</div></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn">Practice Negotiation Script</button>
+    </div>
+  </div>
+</div>
+
+<!-- 76: QUIZ HISTORY -->
+<div>
+  <div class="lbl">76 · Quiz History</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Quiz History</span><span></span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">6</div><div class="sl">Total</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">89%</div><div class="sl">Avg Score</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">3</div><div class="sl">Completed</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">Career Interest Quiz</div><div style="font-size:11px;color:var(--muted);">April 20, 2025 · 8 min</div></div>
+            <span class="b-teal">94% match</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Top result: Software Engineer</div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button style="flex:1;font-size:11px;padding:6px;background:var(--glass);border:1px solid var(--border-g);border-radius:8px;color:var(--rust);font-weight:600;cursor:pointer;">View Results</button>
+            <button style="flex:1;font-size:11px;padding:6px;background:var(--glass);border:1px solid var(--border-g);border-radius:8px;color:var(--muted);cursor:pointer;">Retake</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">Skills Assessment</div><div style="font-size:11px;color:var(--muted);">April 15, 2025 · 12 min</div></div>
+            <span class="b-amber">80% score</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Python · Problem Solving · Strong</div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">Aptitude Test</div><div style="font-size:11px;color:var(--muted);">April 10, 2025 · 30 min</div></div>
+            <span class="b-sky">72 / 100</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">Better than 68% of peers</div>
+        </div>
+        <div class="gc" style="padding:13px;opacity:0.6;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:13px;">Personality Type Test</div><div style="font-size:11px;color:var(--muted);">March 30, 2025 · 15 min</div></div>
+            <span class="b-rose">Not Finished</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 77: PARENT / GUARDIAN VIEW -->
+<div>
+  <div class="lbl">77 · Parent Dashboard</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Parent View</span><span class="navicon">⚙️</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;">
+        <div class="av" style="width:52px;height:52px;font-size:18px;">AK</div>
+        <div><div style="font-weight:700;font-size:15px;">Arjun Kumar</div><div style="font-size:12px;color:var(--muted);">B.Tech CSE · VIT Vellore</div><div style="font-size:12px;color:var(--teal);margin-top:2px;">Active today · On track ✓</div></div>
+      </div>
+      <div class="sec">Career Progress Overview</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">87%</div><div class="sl">Profile Ready</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">7</div><div class="sl">Day Streak</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">94%</div><div class="sl">Top Match</div></div>
+        <div class="stat"><div class="sv" style="color:var(--sky);">Top 18%</div><div class="sl">Among Peers</div></div>
+      </div>
+      <div class="sec">Recent Activities</div>
+      <div class="gc">
+        <div class="row"><span style="font-size:16px;">📝</span><div style="flex:1;margin-left:8px;font-size:13px;">Completed Career Quiz</div><span style="font-size:11px;color:var(--muted);">Today</span></div>
+        <div class="row"><span style="font-size:16px;">🔍</span><div style="flex:1;margin-left:8px;font-size:13px;">Explored Software Engineering</div><span style="font-size:11px;color:var(--muted);">Yesterday</span></div>
+        <div class="row"><span style="font-size:16px;">💼</span><div style="flex:1;margin-left:8px;font-size:13px;">Applied for 2 internships</div><span style="font-size:11px;color:var(--muted);">Apr 22</span></div>
+      </div>
+      <div style="margin-top:14px;background:rgba(26,107,90,0.08);border:1px solid rgba(26,107,90,0.25);border-radius:14px;padding:14px;font-size:13px;color:var(--teal);text-align:center;">✅ Your child is on the right path towards Software Engineering</div>
+    </div>
+  </div>
+</div>
+
+<!-- 78: PUSH NOTIFICATION PREVIEW -->
+<div>
+  <div class="lbl">78 · Push Notification Opt-in</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="min-height:700px;background:linear-gradient(145deg,var(--warm),var(--cream));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+      <div style="width:80px;height:80px;border-radius:24px;background:var(--glass);border:1.5px solid var(--border-g);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:24px;box-shadow:var(--shadow);">🔔</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:10px;">Stay on track!</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;">Get daily reminders, career match updates, and important deadline alerts straight to your phone.</div>
+      <!-- example notifications -->
+      <div style="background:white;border-radius:16px;padding:14px;width:100%;margin-bottom:8px;box-shadow:var(--shadow2);text-align:left;display:flex;gap:12px;align-items:center;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--rust),var(--amber));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧭</div>
+        <div><div style="font-size:12px;font-weight:700;">PathFinder AI</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">Your 7-day streak is on the line! Open the app.</div></div>
+      </div>
+      <div style="background:white;border-radius:16px;padding:14px;width:100%;margin-bottom:24px;box-shadow:var(--shadow2);text-align:left;display:flex;gap:12px;align-items:center;opacity:0.7;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧭</div>
+        <div><div style="font-size:12px;font-weight:700;">PathFinder AI</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">New job at Google matches your profile!</div></div>
+      </div>
+      <button class="btn" style="width:100%;margin-bottom:10px;">Allow Notifications</button>
+      <button class="btn-ghost" style="width:100%;">Not Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- 79: CAREER STORY / SUCCESS STORY -->
+<div>
+  <div class="lbl">79 · Alumni Success Story</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Success Stories</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(196,97,42,0.08),rgba(232,164,90,0.06));">
+        <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px;">
+          <div class="av" style="width:56px;height:56px;font-size:20px;">RK</div>
+          <div><div style="font-weight:800;font-size:16px;">Rahul Kumar</div><div style="font-size:12px;color:var(--muted);">Software Engineer at Microsoft</div><div style="display:flex;gap:6px;margin-top:4px;"><span class="b-teal">PathFinder User</span></div></div>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:var(--deep);line-height:1.6;margin-bottom:14px;">"PathFinder helped me discover that I was perfectly suited for software engineering. 6 months after using the roadmap feature, I landed my dream job at Microsoft."</div>
+        <div style="display:flex;gap:16px;font-size:12px;color:var(--muted);">
+          <span>⭐⭐⭐⭐⭐</span><span>Former B.Tech CSE · VIT</span>
+        </div>
+      </div>
+      <div class="sec">More Stories</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div class="av" style="width:44px;height:44px;font-size:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));">PM</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Priya M · UX Designer at Swiggy</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;">"I never knew design was my calling until PathFinder's quiz!"</div></div>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div class="av" style="width:44px;height:44px;font-size:14px;background:linear-gradient(135deg,var(--sky),#67B5D8);">AS</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Arjun S · Data Scientist at Razorpay</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;">"The roadmap was exactly what I needed to stay focused."</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 80: FINAL SCREEN - APP TOUR COMPLETE -->
+<div>
+  <div class="lbl">80 · App Tour Complete</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="min-height:700px;background:linear-gradient(145deg,var(--deep) 0%,#5C3018 50%,var(--rust) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-80px;left:-80px;width:250px;height:250px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+      <div style="position:absolute;bottom:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+      <div style="width:90px;height:90px;border-radius:28px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:24px;">🧭</div>
+      <div style="font-family:'Playfair Display',serif;font-size:30px;font-weight:900;color:white;line-height:1.2;margin-bottom:12px;">Your journey<br>starts now.</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.65);margin-bottom:32px;line-height:1.8;">PathFinder AI is ready to guide you to the career that's truly meant for you. Let's make it happen.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+        <button style="background:white;color:var(--deep);border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;">Take Career Quiz Now 🎯</button>
+        <button style="background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;">Explore All Careers</button>
+      </div>
+      <div style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.4);">PathFinder AI · Built for every Indian student</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end grid -->
+</body>
+</html>

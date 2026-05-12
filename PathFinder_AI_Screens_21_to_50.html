@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PathFinder AI – Screens 21–50</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+/* ── Design bridge: merges purple dark (1-20) → warm glassmorphism (51-80) ── */
+:root {
+  /* Purple carry-over */
+  --primary: #1A0A3C;
+  --accent: #7C3AED;
+  --accent2: #F59E0B;
+  --accent3: #10B981;
+  --light: #F5F3FF;
+  --border: #EDE9FE;
+  --danger: #EF4444;
+  --text: #111827;
+  --gray: #6B7280;
+  --gray2: #E5E7EB;
+
+  /* Warm glassmorphism carry-forward */
+  --sand: #FDF6EE;
+  --cream: #FAF0E6;
+  --warm: #F5E6D3;
+  --amber: #E8A45A;
+  --rust: #C4612A;
+  --deep: #2D1B0E;
+  --teal: #1A6B5A;
+  --teal2: #2D9B82;
+  --rose: #D9534F;
+  --sky: #4A90B8;
+  --gold: #C9973A;
+  --glass: rgba(255,255,255,0.55);
+  --glass2: rgba(255,255,255,0.35);
+  --border-g: rgba(255,255,255,0.6);
+  --border-g2: rgba(200,160,100,0.3);
+  --muted: #8B6A4A;
+  --muted2: #B89070;
+  --shadow: 0 8px 32px rgba(45,27,14,0.12);
+  --shadow2: 0 2px 12px rgba(45,27,14,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: linear-gradient(135deg, #EDE9FE 0%, #F5E6D3 40%, #E8C9A0 70%, #DDB878 100%);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.hdr { text-align: center; padding: 48px 20px 24px; }
+.hdr h1 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+.hdr p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+.grid { display: flex; flex-direction: column; align-items: center; gap: 36px; padding: 32px 20px 80px; }
+
+/* PHONE FRAME */
+.phone { width: 375px; border-radius: 44px; overflow: hidden; border: 1.5px solid var(--border-g); box-shadow: 0 40px 80px rgba(26,10,60,0.18), 0 0 0 1px rgba(255,255,255,0.5), inset 0 1px 0 rgba(255,255,255,0.8); background: var(--sand); position: relative; }
+.lbl { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; text-align: center; }
+
+/* NOTCH */
+.notch { width: 120px; height: 28px; background: var(--primary); border-radius: 0 0 20px 20px; margin: 0 auto; display: block; }
+
+/* STATUS BAR */
+.sbar { display: flex; justify-content: space-between; padding: 8px 22px 0; font-size: 11px; font-weight: 600; color: var(--muted); }
+
+/* NAV */
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border-g2); }
+.navt { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--primary); }
+.navback { color: var(--accent); font-size: 20px; cursor: pointer; }
+.navicon { width: 36px; height: 36px; border-radius: 10px; background: var(--glass); border: 1px solid var(--border-g); display: flex; align-items: center; justify-content: center; font-size: 16px; backdrop-filter: blur(8px); }
+
+/* BOTTOM TAB */
+.btab { display: flex; justify-content: space-around; padding: 12px 0 20px; border-top: 1px solid var(--border-g2); background: var(--glass); backdrop-filter: blur(12px); }
+.bitem { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; color: var(--muted2); font-weight: 600; }
+.bitem.on { color: var(--accent); }
+.bicon { font-size: 20px; }
+
+/* BUTTONS */
+.btn { background: var(--accent); color: white; border: none; border-radius: 14px; padding: 15px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; }
+.btn-teal { background: var(--teal); color: white; border: none; border-radius: 14px; padding: 15px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; }
+.btn-ghost { background: var(--glass); color: var(--deep); border: 1px solid var(--border-g); border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 600; width: 100%; cursor: pointer; backdrop-filter: blur(8px); }
+.btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 14px; padding: 13px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; }
+.btn-rust { background: var(--rust); color: white; border: none; border-radius: 14px; padding: 15px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; }
+
+/* GLASS CARDS */
+.gc { background: var(--glass); border: 1px solid var(--border-g); border-radius: 18px; padding: 16px; backdrop-filter: blur(12px); }
+.gc2 { background: var(--glass2); border: 1px solid var(--border-g2); border-radius: 18px; padding: 16px; backdrop-filter: blur(8px); }
+
+/* LEGACY CARD */
+.card { background: white; border-radius: 18px; padding: 16px; box-shadow: 0 2px 12px rgba(124,58,237,0.07); border: 1px solid var(--border); }
+
+/* BADGES */
+.badge-purple { background: #EDE9FE; color: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+.badge-green { background: #D1FAE5; color: #065F46; border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+.badge-amber { background: #FEF3C7; color: #92400E; border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+.b-rust { background: rgba(196,97,42,0.1); color: var(--rust); border: 1px solid rgba(196,97,42,0.35); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; display: inline-block; }
+.b-teal { background: rgba(26,107,90,0.1); color: var(--teal); border: 1px solid rgba(26,107,90,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; display: inline-block; }
+.b-gold { background: rgba(201,151,58,0.15); color: var(--gold); border: 1px solid rgba(201,151,58,0.4); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; display: inline-block; }
+.b-sky { background: rgba(74,144,184,0.1); color: var(--sky); border: 1px solid rgba(74,144,184,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; display: inline-block; }
+.b-rose { background: rgba(217,83,79,0.1); color: var(--rose); border: 1px solid rgba(217,83,79,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; display: inline-block; }
+
+/* INPUTS */
+.inp { width: 100%; background: var(--glass); border: 1px solid var(--border-g); border-radius: 12px; padding: 13px 14px; font-size: 14px; color: var(--text); outline: none; font-family: 'DM Sans', sans-serif; backdrop-filter: blur(8px); }
+.input-field { width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--text); background: var(--light); outline: none; }
+.lbl-f { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.8px; }
+.fw { margin-bottom: 14px; }
+
+/* PROGRESS */
+.pbg { height: 5px; background: rgba(45,27,14,0.1); border-radius: 3px; }
+.pf { height: 5px; border-radius: 3px; background: var(--accent); }
+.prog-bg { height: 6px; background: var(--border); border-radius: 3px; }
+.prog-fill { height: 6px; background: var(--accent); border-radius: 3px; }
+
+/* SCROLL */
+.scr { overflow-y: auto; max-height: 580px; padding: 16px 20px; }
+
+/* SECTION TITLES */
+.sec { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+.sec-italic { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--deep); margin-bottom: 10px; font-style: italic; }
+
+/* DIVIDER */
+.dv { height: 1px; background: var(--border-g2); margin: 12px 0; }
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* AVATAR */
+.av { border-radius: 50%; background: linear-gradient(135deg, var(--accent), #A855F7); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Syne', sans-serif; font-weight: 700; flex-shrink: 0; }
+
+/* ROW */
+.row { display: flex; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border-g2); }
+.row:last-child { border-bottom: none; }
+
+/* CHIP */
+.chip { border: 1px solid var(--border-g2); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); cursor: pointer; font-weight: 500; background: var(--glass2); }
+.chip.on, .chip.selected { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* MATCH BAR */
+.mb-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.mb-lbl { font-size: 12px; color: var(--muted); width: 110px; flex-shrink: 0; }
+.mb-track { flex: 1; height: 6px; background: rgba(45,27,14,0.1); border-radius: 3px; }
+.mb-fill { height: 6px; border-radius: 3px; }
+.mb-pct { font-size: 12px; font-weight: 700; width: 36px; text-align: right; }
+
+/* STAT */
+.stat { background: var(--glass); border: 1px solid var(--border-g); border-radius: 14px; padding: 14px; text-align: center; backdrop-filter: blur(8px); }
+.sv { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; }
+.sl { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* HERO */
+.hero { background: linear-gradient(145deg, var(--primary) 0%, #3B0764 60%, var(--accent) 100%); padding: 24px 20px 22px; color: white; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+
+/* TIMELINE */
+.tl { display: flex; gap: 14px; margin-bottom: 16px; }
+.tdw { display: flex; flex-direction: column; align-items: center; }
+.td { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.tl-line { width: 2px; flex: 1; background: var(--border-g2); margin: 4px 0; min-height: 36px; }
+
+/* TOGGLE */
+.tog { width: 44px; height: 24px; border-radius: 12px; position: relative; flex-shrink: 0; }
+.tog.on { background: var(--teal); }
+.tog.off { background: rgba(45,27,14,0.15); }
+.tog::after { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: white; top: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.tog.on::after { right: 3px; }
+.tog.off::after { left: 3px; }
+.togrow { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+
+/* SCORE CIRCLE */
+.scring { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-direction: column; background: rgba(124,58,237,0.08); }
+
+/* PILL */
+.pill { background: var(--glass); border: 1px solid var(--border-g2); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--muted); display: inline-block; margin: 3px; }
+
+/* NOTIF ROW */
+.nrow { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 14px; margin-bottom: 8px; background: var(--glass); border: 1px solid var(--border-g); backdrop-filter: blur(8px); }
+
+/* STARS */
+.stars { color: var(--accent2); font-size: 14px; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>PathFinder AI</h1>
+  <p>Screens 21–50 · Transitional Edition · Purple → Warm Glass</p>
+</div>
+
+<div class="grid">
+
+<!-- ═══════════════════════════════════════════════
+     21: RESUME BUILDER INTRO
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">21 · Resume Builder</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Resume Builder</span><span class="navicon">💡</span></div>
+    <div class="scr">
+      <div style="background:linear-gradient(135deg,#EDE9FE,#F5F3FF);border-radius:18px;padding:20px;text-align:center;margin-bottom:18px;">
+        <div style="font-size:48px;margin-bottom:10px;">📄</div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--primary);">AI Resume Builder</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:4px;line-height:1.6;">Create an ATS-friendly resume in minutes using your profile data</div>
+      </div>
+      <div class="sec">Choose a template</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="border:2.5px solid var(--accent);border-radius:14px;overflow:hidden;cursor:pointer;">
+          <div style="height:90px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;">💼</div>
+          <div style="padding:8px;background:white;text-align:center;"><div style="font-size:12px;font-weight:700;color:var(--accent);">Professional</div><div style="font-size:10px;color:var(--gray);">Most popular</div></div>
+        </div>
+        <div style="border:1.5px solid var(--border-g2);border-radius:14px;overflow:hidden;cursor:pointer;">
+          <div style="height:90px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:28px;">✨</div>
+          <div style="padding:8px;background:white;text-align:center;"><div style="font-size:12px;font-weight:700;color:var(--teal);">Creative</div><div style="font-size:10px;color:var(--gray);">Design roles</div></div>
+        </div>
+        <div style="border:1.5px solid var(--border-g2);border-radius:14px;overflow:hidden;cursor:pointer;">
+          <div style="height:90px;background:linear-gradient(135deg,var(--rust),var(--amber));display:flex;align-items:center;justify-content:center;font-size:28px;">🎓</div>
+          <div style="padding:8px;background:white;text-align:center;"><div style="font-size:12px;font-weight:700;color:var(--rust);">Fresher</div><div style="font-size:10px;color:var(--gray);">Entry level</div></div>
+        </div>
+        <div style="border:1.5px solid var(--border-g2);border-radius:14px;overflow:hidden;cursor:pointer;">
+          <div style="height:90px;background:linear-gradient(135deg,#1A0A3C,#4C1D95);display:flex;align-items:center;justify-content:center;font-size:28px;">🚀</div>
+          <div style="padding:8px;background:white;text-align:center;"><div style="font-size:12px;font-weight:700;color:var(--primary);">Minimal</div><div style="font-size:10px;color:var(--gray);">Tech roles</div></div>
+        </div>
+      </div>
+      <button class="btn">Generate My Resume ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     22: RESUME PREVIEW
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">22 · Resume Preview</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">My Resume</span><span class="navicon">📤</span></div>
+    <div class="scr">
+      <div style="background:white;border-radius:16px;border:1.5px solid var(--border-g2);padding:18px;margin-bottom:14px;box-shadow:var(--shadow2);">
+        <div style="text-align:center;padding-bottom:12px;border-bottom:2px solid var(--accent);margin-bottom:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--primary);">Arjun Kumar</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:3px;">arjun@gmail.com · +91 98765 43210 · Bangalore</div>
+          <div style="display:flex;justify-content:center;gap:10px;margin-top:6px;">
+            <span style="font-size:11px;color:var(--accent);">🔗 LinkedIn</span>
+            <span style="font-size:11px;color:var(--accent);">💻 GitHub</span>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:5px;">EDUCATION</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;">B.Tech Computer Science · VIT Vellore<br><span style="color:var(--gray);">2022–2026 · CGPA 8.7</span></div>
+        <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+        <div style="font-size:12px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:5px;">SKILLS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <span style="background:#EDE9FE;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;">Python</span>
+          <span style="background:#EDE9FE;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;">React</span>
+          <span style="background:#EDE9FE;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;">SQL</span>
+          <span style="background:#EDE9FE;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;">ML Basics</span>
+        </div>
+        <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+        <div style="font-size:12px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:5px;">PROJECTS</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;">• Career Match AI – ML model using NLP<br>• E-Commerce App – React + Node.js</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="flex:2;">Download PDF</button>
+        <button class="btn-ghost" style="flex:1;">Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     23: MOCK INTERVIEW INTRO
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">23 · Mock Interview</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Mock Interview</span><span></span></div>
+    <div style="padding:20px;">
+      <div style="text-align:center;padding:16px 0 20px;">
+        <div style="font-size:64px;margin-bottom:12px;">🎤</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--primary);line-height:1.3;">Practice makes<br>perfect!</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:8px;line-height:1.6;">AI-powered mock interviews tailored to your target role</div>
+      </div>
+      <div class="sec">Interview Type</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+        <div style="background:rgba(124,58,237,0.07);border:2px solid var(--accent);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">💻</span>
+          <div><div style="font-weight:700;font-size:14px;color:var(--accent);">Technical Interview</div><div style="font-size:12px;color:var(--gray);">DSA, System Design, Coding</div></div>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">🤝</span>
+          <div><div style="font-weight:600;font-size:14px;">HR / Behavioral</div><div style="font-size:12px;color:var(--muted);">STAR method, culture fit</div></div>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <span style="font-size:22px;">📊</span>
+          <div><div style="font-weight:600;font-size:14px;">Case Interview</div><div style="font-size:12px;color:var(--muted);">Consulting & PM roles</div></div>
+        </div>
+      </div>
+      <button class="btn">Start Interview →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     24: MOCK INTERVIEW IN PROGRESS
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">24 · Interview In Progress</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="background:linear-gradient(145deg,var(--primary),#3B0764);padding:16px 20px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;">Technical Interview</span>
+        <span style="background:rgba(239,68,68,0.2);color:#FCA5A5;border:1px solid rgba(239,68,68,0.4);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">● REC  04:27</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">QUESTION 2 OF 5</div>
+        <div style="font-size:14px;color:white;line-height:1.6;">"Explain the difference between an array and a linked list. When would you use one over the other?"</div>
+      </div>
+    </div>
+    <div style="padding:14px 20px;overflow-y:auto;max-height:420px;">
+      <div style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:14px;padding:14px;margin-bottom:14px;min-height:120px;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;">YOUR ANSWER</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.7;">An array stores elements in contiguous memory locations, allowing O(1) access by index. A linked list stores elements in nodes connected by pointers, allowing O(1) insertion/deletion...</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent3);animation:pulse 1s infinite;"></div>
+          <span style="font-size:11px;color:var(--gray);">Listening...</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" style="flex:1;padding:10px;font-size:13px;">⏸ Pause</button>
+        <button class="btn" style="flex:2;padding:10px;font-size:13px;">Next Question →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     25: INTERVIEW FEEDBACK
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">25 · Interview Feedback</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Interview Feedback</span><span class="navicon">📤</span></div>
+    <div class="scr">
+      <div class="gc" style="text-align:center;margin-bottom:16px;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(124,58,237,0.04));">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;">OVERALL SCORE</div>
+        <div class="scring" style="margin:0 auto 8px;border-color:var(--accent);">
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent);">78</div>
+          <div style="font-size:9px;color:var(--muted);">/ 100</div>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--primary);">Good Performance!</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Better than 65% of candidates</div>
+      </div>
+      <div class="sec">Skill Breakdown</div>
+      <div style="margin-bottom:16px;">
+        <div class="mb-row"><div class="mb-lbl">Technical Accuracy</div><div class="mb-track"><div class="mb-fill" style="width:82%;background:var(--accent);"></div></div><div class="mb-pct" style="color:var(--accent);">82%</div></div>
+        <div class="mb-row"><div class="mb-lbl">Communication</div><div class="mb-track"><div class="mb-fill" style="width:74%;background:var(--teal);"></div></div><div class="mb-pct" style="color:var(--teal);">74%</div></div>
+        <div class="mb-row"><div class="mb-lbl">Problem Approach</div><div class="mb-track"><div class="mb-fill" style="width:68%;background:var(--gold);"></div></div><div class="mb-pct" style="color:var(--gold);">68%</div></div>
+        <div class="mb-row"><div class="mb-lbl">Confidence</div><div class="mb-track"><div class="mb-fill" style="width:80%;background:var(--rust);"></div></div><div class="mb-pct" style="color:var(--rust);">80%</div></div>
+      </div>
+      <div class="sec">AI Suggestions</div>
+      <div class="gc" style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--border-g2);">
+          <span style="font-size:16px;">💡</span>
+          <div style="font-size:13px;color:var(--text);line-height:1.6;">Practice explaining time complexity more clearly. Use Big-O notation every time.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding-top:10px;">
+          <span style="font-size:16px;">📈</span>
+          <div style="font-size:13px;color:var(--text);line-height:1.6;">Your answer structure improved vs last session. Keep using the STAR method.</div>
+        </div>
+      </div>
+      <button class="btn">Retry Interview</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     26: LEARNING RESOURCES
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">26 · Learning Resources</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="hero" style="padding:20px 20px 18px;">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;">Learn & Grow 📚</div>
+      <div style="font-size:13px;opacity:0.7;margin-top:4px;">Curated resources for your career path</div>
+    </div>
+    <div class="scr">
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">All</div>
+        <div class="chip">Free</div>
+        <div class="chip">Courses</div>
+        <div class="chip">Books</div>
+        <div class="chip">Videos</div>
+      </div>
+      <div class="sec">Recommended for You</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🐍</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">Python for Beginners</div>
+            <div style="font-size:11px;color:var(--muted);">Coursera · 4.8 ⭐ · Free audit</div>
+            <div style="margin-top:5px;"><div class="prog-bg"><div class="prog-fill" style="width:45%;"></div></div></div>
+          </div>
+          <span class="b-teal">45%</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#A855F7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🧠</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">DSA Mastery</div>
+            <div style="font-size:11px;color:var(--muted);">Udemy · 4.9 ⭐ · ₹499</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">120 hours · Beginner → Expert</div>
+          </div>
+          <span class="b-rust">New</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚛️</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;">React.js Complete Guide</div>
+            <div style="font-size:11px;color:var(--muted);">YouTube · Free · 18 hrs</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Matches your SWE roadmap</div>
+          </div>
+          <span class="b-gold">Saved</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     27: DAILY STUDY PLAN
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">27 · Daily Study Plan</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Today's Plan</span><span class="navicon">✏️</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(124,58,237,0.03));">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--primary);">Monday, Apr 28</div><div style="font-size:12px;color:var(--muted);">3 of 5 tasks completed</div></div>
+          <div style="text-align:center;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);">60%</div><div style="font-size:10px;color:var(--muted);">Done</div></div>
+        </div>
+        <div class="pbg"><div class="pf" style="width:60%;"></div></div>
+      </div>
+      <div class="sec">Today's Tasks</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;">✓</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;text-decoration:line-through;color:var(--muted);">Solve 2 LeetCode problems</div><div style="font-size:11px;color:var(--muted);">Arrays · Done ✓</div></div>
+          <span class="b-teal">Done</span>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;">✓</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;text-decoration:line-through;color:var(--muted);">Watch React lecture – Chapter 5</div><div style="font-size:11px;color:var(--muted);">1 hr · Done ✓</div></div>
+          <span class="b-teal">Done</span>
+        </div>
+        <div style="background:rgba(124,58,237,0.07);border:2px solid var(--accent);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;">
+          <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--primary);">Read System Design Chapter 2</div><div style="font-size:11px;color:var(--muted);">45 min · In progress</div></div>
+          <span class="b-rust">Now</span>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;opacity:0.7;">
+          <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border-g2);flex-shrink:0;"></div>
+          <div style="flex:1;"><div style="font-size:13px;">Practice verbal communication (15 min)</div><div style="font-size:11px;color:var(--muted);">Evening task</div></div>
+        </div>
+        <div class="gc" style="padding:12px;display:flex;gap:12px;align-items:center;opacity:0.7;">
+          <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border-g2);flex-shrink:0;"></div>
+          <div style="flex:1;"><div style="font-size:13px;">Update GitHub with today's project</div><div style="font-size:11px;color:var(--muted);">Evening task</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     28: ACHIEVEMENTS & BADGES
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">28 · Achievements</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="hero" style="padding:20px 20px 18px;">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;">My Achievements 🏆</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;">
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:white;">12</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);">Badges</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:white;">7</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);">Day Streak</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:white;">Top 18%</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);">Peers</div>
+        </div>
+      </div>
+    </div>
+    <div class="scr">
+      <div class="sec">Recent Badges</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="text-align:center;">
+          <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;">🔥</div>
+          <div style="font-size:11px;font-weight:700;color:var(--primary);">7-Day Streak</div>
+          <div style="font-size:10px;color:var(--muted);">Earned today</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--accent),#A855F7);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;">🎯</div>
+          <div style="font-size:11px;font-weight:700;color:var(--primary);">Quiz Master</div>
+          <div style="font-size:10px;color:var(--muted);">3 quizzes done</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;">📄</div>
+          <div style="font-size:11px;font-weight:700;color:var(--primary);">Resume Built</div>
+          <div style="font-size:10px;color:var(--muted);">First draft</div>
+        </div>
+        <div style="text-align:center;opacity:0.4;">
+          <div style="width:60px;height:60px;border-radius:18px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;border:2px dashed var(--gray);">🏅</div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray);">Interview Ace</div>
+          <div style="font-size:10px;color:var(--gray);">Locked</div>
+        </div>
+        <div style="text-align:center;opacity:0.4;">
+          <div style="width:60px;height:60px;border-radius:18px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;border:2px dashed var(--gray);">🌟</div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray);">Top 10%</div>
+          <div style="font-size:10px;color:var(--gray);">Locked</div>
+        </div>
+        <div style="text-align:center;opacity:0.4;">
+          <div style="width:60px;height:60px;border-radius:18px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;border:2px dashed var(--gray);">💼</div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray);">Job Getter</div>
+          <div style="font-size:10px;color:var(--gray);">Locked</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     29: MENTOR CONNECT
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">29 · Mentor Connect</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Find a Mentor</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(232,164,90,0.12),rgba(196,97,42,0.08));border-color:rgba(232,164,90,0.4);">
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Connect with industry professionals who've walked your path. 1-on-1 sessions, 30 min.</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;">
+        <div class="chip on">All</div>
+        <div class="chip">Tech</div>
+        <div class="chip">Product</div>
+        <div class="chip">Design</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+            <div class="av" style="width:50px;height:50px;font-size:16px;">RS</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Ravi Sharma</div><div style="font-size:12px;color:var(--muted);">Senior SWE · Google, 8 yrs exp</div><div style="display:flex;gap:6px;margin-top:4px;"><span class="b-teal">Tech</span><span class="b-gold">Top Mentor</span></div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:10px;">
+            <span>⭐ 4.9 · 128 sessions</span><span>Next slot: Tomorrow 3PM</span>
+          </div>
+          <button class="btn" style="padding:10px;font-size:13px;">Book Session – Free</button>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+            <div class="av" style="width:50px;height:50px;font-size:16px;background:linear-gradient(135deg,var(--teal),var(--teal2));">AM</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Ananya Menon</div><div style="font-size:12px;color:var(--muted);">Product Manager · Swiggy, 5 yrs</div><div style="display:flex;gap:6px;margin-top:4px;"><span class="b-sky">Product</span></div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px;">
+            <span>⭐ 4.8 · 76 sessions</span><span>Next: Apr 30, 5PM</span>
+          </div>
+          <button class="btn-ghost" style="padding:10px;font-size:13px;">Book Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     30: MENTOR BOOKING CONFIRMATION
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">30 · Booking Confirmed</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="min-height:700px;background:linear-gradient(145deg,#1A0A3C,#4C1D95,#7C3AED);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-80px;left:-80px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+      <div style="position:absolute;bottom:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+      <div style="width:80px;height:80px;border-radius:50%;background:rgba(16,185,129,0.25);border:2px solid rgba(16,185,129,0.6);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;">✓</div>
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:white;line-height:1.3;margin-bottom:8px;">Session Booked!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.65);margin-bottom:28px;line-height:1.8;">Your 1-on-1 session with Ravi Sharma is confirmed.</div>
+      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:18px;padding:18px;width:100%;margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:white;margin-bottom:10px;"><span style="opacity:0.7;">Mentor</span><span style="font-weight:700;">Ravi Sharma</span></div>
+        <div style="height:1px;background:rgba(255,255,255,0.15);margin-bottom:10px;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:white;margin-bottom:10px;"><span style="opacity:0.7;">Date</span><span style="font-weight:700;">Tomorrow, Apr 29</span></div>
+        <div style="height:1px;background:rgba(255,255,255,0.15);margin-bottom:10px;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:white;"><span style="opacity:0.7;">Time</span><span style="font-weight:700;">3:00 PM – 3:30 PM</span></div>
+      </div>
+      <button style="background:white;color:var(--primary);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-bottom:10px;">Add to Calendar</button>
+      <button style="background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:13px;font-size:15px;font-weight:600;width:100%;cursor:pointer;">Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     31: JOB LISTINGS
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">31 · Job Listings</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="hero" style="padding:18px 20px 16px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">Jobs for You 💼</div>
+      <div style="font-size:13px;opacity:0.7;margin-top:4px;">142 roles match your profile</div>
+    </div>
+    <div class="scr">
+      <div class="inp" style="margin-bottom:12px;display:flex;align-items:center;">🔍 &nbsp; Search roles, companies...</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">All</div><div class="chip">Remote</div><div class="chip">Freshers</div><div class="chip">Bangalore</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:white;flex-shrink:0;">G</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Software Engineer – L3</div><div style="font-size:12px;color:var(--muted);">Google · Bangalore · Remote OK</div></div>
+            <span class="b-teal">94%</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="pill">₹24–38 LPA</span><span class="pill">2+ yrs exp</span><span class="pill">Python</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" style="flex:2;padding:9px;font-size:12px;">Apply Now</button>
+            <button class="btn-ghost" style="flex:1;padding:9px;font-size:12px;">Save</button>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#FF6900,#FFB800);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">A</div>
+            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">SDE-1 (Fresher)</div><div style="font-size:12px;color:var(--muted);">Amazon · Hyderabad · On-site</div></div>
+            <span class="b-rust">88%</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="pill">₹18–28 LPA</span><span class="pill">Fresher OK</span><span class="pill">Java/C++</span>
+          </div>
+          <button class="btn-ghost" style="padding:9px;font-size:12px;">View Details</button>
+        </div>
+        <div class="gc" style="padding:14px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6554C0,#998DD9);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">Z</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:14px;">Software Engineer – Zoho</div><div style="font-size:12px;color:var(--muted);">Chennai · Hybrid · ₹8–14 LPA</div></div>
+          <span class="b-gold">82%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     32: JOB DETAIL
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">32 · Job Detail</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Job Details</span><span class="navicon">🔖</span></div>
+    <div style="overflow-y:auto;max-height:640px;">
+      <div style="background:linear-gradient(135deg,#4285F4,#34A853);padding:22px 20px;color:white;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:18px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;margin:0 auto 12px;">G</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">Software Engineer – L3</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:4px;">Google · Bangalore · Remote OK</div>
+        <div style="display:flex;justify-content:center;gap:20px;margin-top:14px;">
+          <div style="text-align:center;"><div style="font-size:16px;font-weight:800;">₹38 LPA</div><div style="font-size:10px;opacity:0.7;">Max Salary</div></div>
+          <div style="width:1px;background:rgba(255,255,255,0.3);"></div>
+          <div style="text-align:center;"><div style="font-size:16px;font-weight:800;">94%</div><div style="font-size:10px;opacity:0.7;">Your Match</div></div>
+          <div style="width:1px;background:rgba(255,255,255,0.3);"></div>
+          <div style="text-align:center;"><div style="font-size:16px;font-weight:800;">2+ yrs</div><div style="font-size:10px;opacity:0.7;">Experience</div></div>
+        </div>
+      </div>
+      <div style="padding:16px 20px;">
+        <div class="sec">About the Role</div>
+        <div style="font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:14px;">Design, develop and deploy scalable backend systems. Work with a cross-functional team in a fast-paced environment. Strong problem-solving and coding skills required.</div>
+        <div class="sec">Required Skills</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+          <div class="chip on">Python</div><div class="chip on">System Design</div><div class="chip">Go</div><div class="chip">Kubernetes</div><div class="chip">SQL</div>
+        </div>
+        <div class="sec">Your Skill Match</div>
+        <div class="mb-row"><div class="mb-lbl">Python</div><div class="mb-track"><div class="mb-fill" style="width:80%;background:var(--accent);"></div></div><div class="mb-pct" style="color:var(--accent);">80%</div></div>
+        <div class="mb-row"><div class="mb-lbl">System Design</div><div class="mb-track"><div class="mb-fill" style="width:55%;background:var(--gold);"></div></div><div class="mb-pct" style="color:var(--gold);">55%</div></div>
+        <div style="height:14px;"></div>
+        <button class="btn">Apply Now 🚀</button>
+        <button class="btn-ghost" style="margin-top:10px;">See AI Prep Tips</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     33: COLLEGE EXPLORER
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">33 · College Explorer</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Colleges</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(196,97,42,0.1),rgba(232,164,90,0.07));border-color:rgba(232,164,90,0.4);">
+        <div style="font-size:13px;color:var(--muted);">Best colleges for <strong style="color:var(--rust);">Computer Science</strong> based on your JEE rank &amp; location preference</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">All India</div><div class="chip">IITs</div><div class="chip">NITs</div><div class="chip">Private</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1A0A3C,#3B0764);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:800;flex-shrink:0;">IIT</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">IIT Bombay – CSE</div><div style="font-size:11px;color:var(--muted);">NIRF Rank #1 · Mumbai · Cutoff 285 JEE Adv</div></div>
+          <span class="b-gold">A+</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#065F46,#10B981);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:800;flex-shrink:0;">NIT</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">NIT Trichy – CSE</div><div style="font-size:11px;color:var(--muted);">NIRF Rank #9 · Trichy · Cutoff 12K JEE Mains</div></div>
+          <span class="b-teal">A</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1E40AF,#3B82F6);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:800;flex-shrink:0;">VIT</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">VIT Vellore – CSE</div><div style="font-size:11px;color:var(--muted);">NIRF Rank #11 · Vellore · Private University</div></div>
+          <span class="b-sky">A</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#9D174D,#EC4899);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:800;flex-shrink:0;">SRM</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">SRM Chennai – CSE</div><div style="font-size:11px;color:var(--muted);">NIRF Rank #18 · Chennai · Private</div></div>
+          <span class="b-rust">B+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     34: ENTRANCE EXAM TRACKER
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">34 · Entrance Exam Tracker</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Exam Tracker</span><span class="navicon">📅</span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">4</div><div class="sl">Upcoming Exams</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">12</div><div class="sl">Days to JEE</div></div>
+      </div>
+      <div class="sec">Upcoming Exams</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(196,97,42,0.07);border:2px solid var(--rust);border-radius:14px;padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:800;font-size:14px;color:var(--rust);">JEE Advanced 2025</div><div style="font-size:12px;color:var(--muted);">For IIT admissions</div></div>
+            <span class="b-rust">12 days</span>
+          </div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">📅 May 10, 2025 · 9 AM – 12 PM</div>
+          <div class="pbg"><div class="pf" style="width:75%;background:var(--rust);"></div></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Preparation: 75% complete</div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div><div style="font-weight:700;font-size:13px;">GATE CSE 2026</div><div style="font-size:12px;color:var(--muted);">PSU jobs &amp; M.Tech</div></div>
+            <span class="b-gold">8 months</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">📅 Feb 2026 · Registration: Oct 2025</div>
+        </div>
+        <div class="gc" style="padding:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:13px;">CAT 2025</div><div style="font-size:12px;color:var(--muted);">Top MBA colleges</div></div>
+            <span class="b-sky">7 months</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:14px;">Set Exam Reminders</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     35: CAREER QUIZ – PERSONALITY TYPE
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">35 · Personality Type Result</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="background:linear-gradient(145deg,var(--primary),#4C1D95,var(--accent));min-height:700px;display:flex;flex-direction:column;align-items:center;padding:28px;text-align:center;">
+      <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:12px;">YOUR PERSONALITY TYPE</div>
+      <div style="width:90px;height:90px;border-radius:28px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px;">🔮</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:white;">The Architect</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin:8px 0 24px;line-height:1.7;">Analytical, strategic, independent thinker. You excel at systems thinking and solving complex problems.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:24px;">
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:12px;"><div style="font-size:11px;color:rgba(255,255,255,0.5);">BEST CAREERS</div><div style="font-size:13px;font-weight:700;color:white;margin-top:4px;">SWE · Data Scientist · Researcher</div></div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:12px;"><div style="font-size:11px;color:rgba(255,255,255,0.5);">WORK STYLE</div><div style="font-size:13px;font-weight:700;color:white;margin-top:4px;">Independent · Deep Work</div></div>
+      </div>
+      <button style="background:white;color:var(--primary);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-bottom:10px;">See Career Matches</button>
+      <button style="background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:13px;font-size:15px;font-weight:600;width:100%;cursor:pointer;">Share My Type</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     36: PREMIUM / SUBSCRIPTION PAGE
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">36 · Premium Plans</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Go Premium</span><span></span></div>
+    <div style="padding:16px 20px;overflow-y:auto;max-height:640px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:40px;margin-bottom:8px;">⚡</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--primary);">Unlock your full potential</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:4px;">Join 50,000+ students on the Pro plan</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <div style="flex:1;background:linear-gradient(135deg,var(--primary),#4C1D95);border-radius:16px;padding:16px;color:white;">
+          <div style="font-size:12px;opacity:0.6;font-weight:600;margin-bottom:6px;">FREE</div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">₹0</div>
+          <div style="font-size:10px;opacity:0.6;margin-top:2px;">Forever</div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:12px;opacity:0.8;">
+            <div>✓ 1 career quiz/month</div>
+            <div>✓ Basic roadmap</div>
+            <div style="opacity:0.4;">✗ Mock interviews</div>
+            <div style="opacity:0.4;">✗ Resume builder</div>
+          </div>
+        </div>
+        <div style="flex:1;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:16px;padding:16px;color:white;position:relative;">
+          <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--danger);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;white-space:nowrap;">MOST POPULAR</div>
+          <div style="font-size:12px;opacity:0.7;font-weight:600;margin-bottom:6px;">PRO</div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">₹199</div>
+          <div style="font-size:10px;opacity:0.7;margin-top:2px;">per month</div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <div>✓ Unlimited quizzes</div>
+            <div>✓ AI Resume builder</div>
+            <div>✓ Mock interviews</div>
+            <div>✓ 1 mentor session</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn">Start 7-Day Free Trial</button>
+      <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--gray);">Cancel anytime · No credit card required</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     37: PROGRESS DASHBOARD
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">37 · Progress Dashboard</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="hero" style="padding:20px 20px 18px;">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;">My Progress 📈</div>
+      <div style="font-size:13px;opacity:0.7;margin-top:4px;">Week of Apr 21 – 27, 2025</div>
+    </div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">14</div><div class="sl">Study Hours</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">8</div><div class="sl">Tasks Done</div></div>
+        <div class="stat"><div class="sv" style="color:var(--gold);">3</div><div class="sl">Mock Tests</div></div>
+        <div class="stat"><div class="sv" style="color:var(--accent);">+12%</div><div class="sl">vs Last Week</div></div>
+      </div>
+      <div class="sec">Weekly Study Chart</div>
+      <div class="gc" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:flex-end;gap:8px;height:80px;padding:8px 0;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="flex:1;width:100%;border-radius:6px 6px 0 0;background:rgba(124,58,237,0.2);min-height:20px;"></div><div style="font-size:9px;color:var(--muted);">Mon</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:50px;width:100%;border-radius:6px 6px 0 0;background:var(--accent);"></div><div style="font-size:9px;color:var(--muted);">Tue</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:35px;width:100%;border-radius:6px 6px 0 0;background:rgba(124,58,237,0.5);"></div><div style="font-size:9px;color:var(--muted);">Wed</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:60px;width:100%;border-radius:6px 6px 0 0;background:var(--accent);"></div><div style="font-size:9px;color:var(--muted);">Thu</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:45px;width:100%;border-radius:6px 6px 0 0;background:rgba(124,58,237,0.5);"></div><div style="font-size:9px;color:var(--muted);">Fri</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:70px;width:100%;border-radius:6px 6px 0 0;background:var(--rust);"></div><div style="font-size:9px;color:var(--muted);">Sat</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="height:28px;width:100%;border-radius:6px 6px 0 0;background:rgba(196,97,42,0.4);"></div><div style="font-size:9px;color:var(--muted);">Sun</div></div>
+        </div>
+      </div>
+      <div class="sec">Skill Growth</div>
+      <div class="mb-row"><div class="mb-lbl">DSA</div><div class="mb-track"><div class="mb-fill" style="width:65%;background:var(--accent);"></div></div><div class="mb-pct" style="color:var(--accent);">+8%</div></div>
+      <div class="mb-row"><div class="mb-lbl">System Design</div><div class="mb-track"><div class="mb-fill" style="width:40%;background:var(--teal);"></div></div><div class="mb-pct" style="color:var(--teal);">+5%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     38: COMMUNITY FORUM
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">38 · Community Forum</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Community</span><span class="navicon">✏️</span></div>
+    <div class="scr">
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">Trending</div><div class="chip">Questions</div><div class="chip">Tips</div><div class="chip">Success</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+            <div class="av" style="width:32px;height:32px;font-size:10px;">AK</div>
+            <div><div style="font-size:12px;font-weight:700;">Arjun Kumar</div><div style="font-size:10px;color:var(--muted);">2 hrs ago</div></div>
+            <span class="b-teal" style="margin-left:auto;">SWE Path</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:6px;">How did you all crack Google L3 in 6 months? 🤯</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">Started from basics, now targeting FAANG. Looking for a study strategy that actually works...</div>
+          <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);">
+            <span>❤️ 34</span><span>💬 12 replies</span><span>🔖 Save</span>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+            <div class="av" style="width:32px;height:32px;font-size:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));">PM</div>
+            <div><div style="font-size:12px;font-weight:700;">Priya M</div><div style="font-size:10px;color:var(--muted);">5 hrs ago</div></div>
+            <span class="b-gold" style="margin-left:auto;">Success 🏆</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:6px;">Got placed at Swiggy as UX Designer! PathFinder helped me discover my passion 🎉</div>
+          <div style="display:flex;gap:16px;margin-top:6px;font-size:12px;color:var(--muted);">
+            <span>❤️ 128</span><span>💬 48 replies</span>
+          </div>
+        </div>
+        <div class="gc" style="padding:14px;">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+            <div class="av" style="width:32px;height:32px;font-size:10px;background:linear-gradient(135deg,var(--sky),#67B5D8);">RS</div>
+            <div><div style="font-size:12px;font-weight:700;">Rajan S</div><div style="font-size:10px;color:var(--muted);">Yesterday</div></div>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--primary);">Best free DSA resources for beginners?</div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--muted);">
+            <span>❤️ 22</span><span>💬 19 replies</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     39: AI CHAT ASSISTANT
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">39 · AI Career Chat</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">PathFinder AI</span><span style="width:10px;height:10px;border-radius:50%;background:var(--accent3);display:block;"></span></div>
+    <div style="padding:14px 16px;overflow-y:auto;max-height:480px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#A855F7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+        <div class="gc" style="border-radius:18px 18px 18px 4px;padding:12px 14px;max-width:78%;">
+          <div style="font-size:13px;line-height:1.6;">Hi Arjun! 👋 I'm your AI career guide. What's on your mind today?</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <div style="background:var(--accent);border-radius:18px 18px 4px 18px;padding:12px 14px;max-width:75%;">
+          <div style="font-size:13px;color:white;line-height:1.6;">I'm in 3rd year CSE. Should I focus on DSA or projects for placements?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#A855F7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+        <div class="gc" style="border-radius:18px 18px 18px 4px;padding:12px 14px;max-width:80%;">
+          <div style="font-size:13px;line-height:1.6;">Great question! For 3rd year, I'd recommend:<br><br>1️⃣ <strong>DSA (70%)</strong> – Placements are largely DSA-based at top firms<br>2️⃣ <strong>Projects (30%)</strong> – 1–2 strong GitHub projects<br><br>Want me to create a 6-month study plan?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="background:var(--glass2);border:1px solid var(--border-g2);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--accent);font-weight:600;">Yes, create plan!</div>
+        <div style="background:var(--glass2);border:1px solid var(--border-g2);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--muted);font-weight:500;">Which projects?</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border-g2);display:flex;gap:10px;align-items:center;">
+      <input class="inp" placeholder="Ask anything about your career..." style="flex:1;">
+      <button class="btn" style="width:44px;height:44px;border-radius:12px;padding:0;font-size:18px;">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     40: CAREER CHANGE FLOW
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">40 · Career Switch Advisor</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Career Switch</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(196,97,42,0.08),rgba(232,164,90,0.05));">
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">Already working but want to switch? Tell us your current role and we'll map out a transition plan.</div>
+      </div>
+      <div class="sec">Current Role</div>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <div style="flex:1;background:rgba(196,97,42,0.08);border:2px solid var(--rust);border-radius:14px;padding:12px;text-align:center;cursor:pointer;"><div style="font-size:20px;">💻</div><div style="font-size:12px;font-weight:700;color:var(--rust);margin-top:4px;">IT / Tech</div></div>
+          <div class="gc" style="flex:1;padding:12px;text-align:center;cursor:pointer;"><div style="font-size:20px;">📊</div><div style="font-size:12px;font-weight:600;margin-top:4px;">Finance</div></div>
+          <div class="gc" style="flex:1;padding:12px;text-align:center;cursor:pointer;"><div style="font-size:20px;">🎓</div><div style="font-size:12px;font-weight:600;margin-top:4px;">Teaching</div></div>
+        </div>
+      </div>
+      <div class="sec">Target Career</div>
+      <div class="gc" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-weight:700;font-size:14px;">Product Manager</div><div style="font-size:12px;color:var(--muted);">Business · Tech</div></div>
+          <span class="b-teal">92% fit</span>
+        </div>
+        <div class="mb-row"><div class="mb-lbl">Skill overlap</div><div class="mb-track"><div class="mb-fill" style="width:72%;background:var(--teal);"></div></div><div class="mb-pct" style="color:var(--teal);">72%</div></div>
+        <div class="mb-row"><div class="mb-lbl">Skills to learn</div><div class="mb-track"><div class="mb-fill" style="width:28%;background:var(--gold);"></div></div><div class="mb-pct" style="color:var(--gold);">28%</div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">Estimated transition: <strong style="color:var(--text);">6–12 months</strong></div>
+      </div>
+      <button class="btn">View Switch Roadmap</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     41: APTITUDE PRACTICE
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">41 · Aptitude Practice</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Question 4 of 15</span><span style="font-size:12px;color:var(--rust);font-weight:600;">Skip</span></div>
+    <div style="padding:16px 20px;">
+      <div class="pbg" style="margin-bottom:18px;"><div class="pf" style="width:26.7%;background:var(--rust);"></div></div>
+      <div class="gc" style="margin-bottom:16px;background:rgba(196,97,42,0.05);">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;">LOGICAL REASONING</div>
+        <div style="font-size:15px;font-weight:700;color:var(--primary);line-height:1.5;">If 12 workers build a wall in 8 days, how many workers are needed to build it in 6 days?</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;cursor:pointer;">
+          <div style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border-g2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0;">A</div>
+          <div style="font-size:14px;">14 workers</div>
+        </div>
+        <div style="background:rgba(16,185,129,0.08);border:2px solid var(--accent3);border-radius:14px;padding:13px;display:flex;gap:12px;align-items:center;cursor:pointer;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;">B</div>
+          <div style="font-size:14px;font-weight:600;color:#065F46;">16 workers</div>
+          <span style="margin-left:auto;font-size:16px;">✓</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;cursor:pointer;">
+          <div style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border-g2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0;">C</div>
+          <div style="font-size:14px;">18 workers</div>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;cursor:pointer;">
+          <div style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border-g2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0;">D</div>
+          <div style="font-size:14px;">20 workers</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-ghost" style="flex:1;padding:11px;font-size:13px;">← Back</button>
+        <button class="btn" style="flex:2;padding:11px;font-size:13px;">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     42: NOTIFICATIONS CENTRE (WARM)
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">42 · Notification Centre</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Notifications</span><span style="font-size:12px;color:var(--rust);font-weight:600;">Clear all</span></div>
+    <div class="scr">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:8px;">TODAY</div>
+      <div class="nrow" style="background:rgba(196,97,42,0.06);border-color:rgba(196,97,42,0.25);">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--rust);margin-top:5px;flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--primary);">🎉 Interview result: Google L3</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">You scored 78/100 – View full feedback</div></div>
+        <div style="font-size:11px;color:var(--muted);">5m</div>
+      </div>
+      <div class="nrow" style="background:rgba(196,97,42,0.06);border-color:rgba(196,97,42,0.25);">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--rust);margin-top:5px;flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--primary);">🔥 7-Day Streak achieved!</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">You've studied 7 days in a row. Keep it up!</div></div>
+        <div style="font-size:11px;color:var(--muted);">2h</div>
+      </div>
+      <div class="nrow">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:5px;flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:600;">📅 Mentor session reminder</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Tomorrow 3PM with Ravi Sharma</div></div>
+        <div style="font-size:11px;color:var(--muted);">3h</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:12px 0 8px;">YESTERDAY</div>
+      <div class="nrow">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--border-g2);margin-top:5px;flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;">💼 New job: SWE at Flipkart</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">92% match with your profile</div></div>
+        <div style="font-size:11px;color:var(--muted);">1d</div>
+      </div>
+      <div class="nrow">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--border-g2);margin-top:5px;flex-shrink:0;"></div>
+        <div style="flex:1;"><div style="font-size:13px;">📊 Your weekly report is ready</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">14 hours studied, 8 tasks completed</div></div>
+        <div style="font-size:11px;color:var(--muted);">1d</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     43: PROFILE EDIT
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">43 · Edit Profile</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Edit Profile</span><span style="font-size:13px;color:var(--accent);font-weight:700;">Save</span></div>
+    <div class="scr">
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px;">
+        <div class="av" style="width:72px;height:72px;font-size:24px;margin-bottom:8px;">AK</div>
+        <div style="font-size:13px;color:var(--accent);font-weight:700;">Change Photo</div>
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Full Name</label>
+        <input class="inp" value="Arjun Kumar">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Current Degree</label>
+        <input class="inp" value="B.Tech Computer Science">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">College / School</label>
+        <input class="inp" value="VIT Vellore">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Year of Study</label>
+        <input class="inp" value="3rd Year (2022-2026)">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">State</label>
+        <input class="inp" value="Tamil Nadu">
+      </div>
+      <div class="fw">
+        <label class="lbl-f">Career Interest</label>
+        <input class="inp" value="Software Engineering, AI/ML">
+      </div>
+      <button class="btn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     44: LEADERBOARD
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">44 · Leaderboard</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Leaderboard</span><span class="navicon">🏆</span></div>
+    <div class="scr">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <div class="chip on">Weekly</div><div class="chip">Monthly</div><div class="chip">All Time</div>
+      </div>
+      <div style="display:flex;justify-content:space-around;align-items:flex-end;margin-bottom:20px;">
+        <div style="text-align:center;">
+          <div class="av" style="width:48px;height:48px;font-size:14px;background:linear-gradient(135deg,#9D9D9D,#C0C0C0);margin:0 auto 6px;">PM</div>
+          <div style="font-size:12px;font-weight:700;">Priya M</div>
+          <div style="width:52px;height:60px;background:linear-gradient(135deg,#9D9D9D,#C0C0C0);border-radius:8px 8px 0 0;margin:6px auto 0;display:flex;align-items:center;justify-content:center;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;">2</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;margin:0 auto 2px;">👑</div>
+          <div class="av" style="width:56px;height:56px;font-size:16px;background:linear-gradient(135deg,#F59E0B,#D97706);margin:0 auto 6px;">RS</div>
+          <div style="font-size:12px;font-weight:800;">Rajan S</div>
+          <div style="width:60px;height:80px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:8px 8px 0 0;margin:6px auto 0;display:flex;align-items:center;justify-content:center;color:white;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">1</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="av" style="width:48px;height:48px;font-size:14px;background:linear-gradient(135deg,#CD7F32,#A0522D);margin:0 auto 6px;">AK</div>
+          <div style="font-size:12px;font-weight:700;">Arjun K</div>
+          <div style="width:52px;height:45px;background:linear-gradient(135deg,#CD7F32,#A0522D);border-radius:8px 8px 0 0;margin:6px auto 0;display:flex;align-items:center;justify-content:center;color:white;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;">3</div>
+        </div>
+      </div>
+      <div class="sec">Full Rankings</div>
+      <div class="gc">
+        <div class="row"><div style="font-size:14px;font-weight:800;color:var(--gold);width:20px;">#4</div><div class="av" style="width:32px;height:32px;font-size:10px;background:linear-gradient(135deg,var(--sky),#67B5D8);">DM</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Divya M</div><div style="font-size:11px;color:var(--muted);">VIT · 820 pts</div></div></div>
+        <div class="row"><div style="font-size:14px;font-weight:800;color:var(--muted);width:20px;">#5</div><div class="av" style="width:32px;height:32px;font-size:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));">SK</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Siddharth K</div><div style="font-size:11px;color:var(--muted);">NIT · 795 pts</div></div></div>
+        <div class="row" style="border-bottom:none;"><div style="font-size:14px;font-weight:800;color:var(--muted);width:20px;">#6</div><div class="av" style="width:32px;height:32px;font-size:10px;">VP</div><div style="flex:1;margin-left:10px;"><div style="font-size:13px;font-weight:600;">Vijay P</div><div style="font-size:11px;color:var(--muted);">IIT · 780 pts</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     45: GPA / MARKS CALCULATOR
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">45 · GPA / CGPA Tracker</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">CGPA Tracker</span><span></span></div>
+    <div class="scr">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:110px;height:110px;border-radius:50%;border:6px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto;background:rgba(124,58,237,0.06);">
+          <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent);">8.7</div>
+          <div style="font-size:11px;color:var(--muted);">CGPA</div>
+        </div>
+        <div style="margin-top:10px;font-size:13px;color:var(--muted);">6 Semesters · B.Tech CSE</div>
+      </div>
+      <div class="sec">Semester Breakdown</div>
+      <div class="gc" style="margin-bottom:14px;">
+        <div class="row"><div style="font-size:13px;font-weight:600;flex:1;">Semester 1</div><div style="font-size:13px;color:var(--teal);font-weight:700;">9.1</div></div>
+        <div class="row"><div style="font-size:13px;font-weight:600;flex:1;">Semester 2</div><div style="font-size:13px;color:var(--teal);font-weight:700;">8.9</div></div>
+        <div class="row"><div style="font-size:13px;font-weight:600;flex:1;">Semester 3</div><div style="font-size:13px;color:var(--gold);font-weight:700;">8.5</div></div>
+        <div class="row"><div style="font-size:13px;font-weight:600;flex:1;">Semester 4</div><div style="font-size:13px;color:var(--gold);font-weight:700;">8.4</div></div>
+        <div class="row"><div style="font-size:13px;font-weight:600;flex:1;">Semester 5</div><div style="font-size:13px;color:var(--teal);font-weight:700;">8.8</div></div>
+        <div class="row" style="border-bottom:none;"><div style="font-size:13px;font-weight:600;flex:1;">Semester 6 (Current)</div><div style="font-size:13px;color:var(--rust);font-weight:700;">–</div></div>
+      </div>
+      <div class="gc" style="background:rgba(26,107,90,0.07);border-color:rgba(26,107,90,0.25);">
+        <div style="font-size:13px;color:var(--teal);line-height:1.6;">✅ Your CGPA qualifies you for campus placements at TCS, Infosys, and Wipro. Maintain 8.5+ for FAANG eligibility.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     46: HACKATHON FINDER
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">46 · Hackathon Finder</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Hackathons</span><span class="navicon">🔍</span></div>
+    <div class="scr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div class="stat"><div class="sv" style="color:var(--rust);">18</div><div class="sl">Open Now</div></div>
+        <div class="stat"><div class="sv" style="color:var(--teal);">5</div><div class="sl">Registered</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;">
+        <div class="chip on">All</div><div class="chip">Online</div><div class="chip">Free</div><div class="chip">AI/ML</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:14px;border-left:3px solid var(--rust);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="flex:1;margin-right:8px;"><div style="font-weight:700;font-size:13px;">Smart India Hackathon 2025</div><div style="font-size:11px;color:var(--muted);">National · Government · ₹1L prize</div></div>
+            <span class="b-rust">5 days left</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">📅 May 2 · Online + Offline · Teams of 6</div>
+          <button class="btn" style="padding:9px;font-size:12px;">Register Team</button>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--teal);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="flex:1;margin-right:8px;"><div style="font-weight:700;font-size:13px;">Google GenAI Hackathon</div><div style="font-size:11px;color:var(--muted);">Global · AI/ML · $5,000 prize</div></div>
+            <span class="b-teal">12 days</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">📅 Online · Solo or Team · Free to join</div>
+        </div>
+        <div class="gc" style="padding:14px;border-left:3px solid var(--gold);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;font-size:13px;">HackVIT 2025</div><div style="font-size:11px;color:var(--muted);">VIT Vellore · Campus · ₹50K prize</div></div>
+            <span class="b-gold">20 days</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     47: SOFT SKILLS MODULE
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">47 · Soft Skills Builder</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="nav"><span class="navback">←</span><span class="navt">Soft Skills</span><span></span></div>
+    <div class="scr">
+      <div class="gc" style="margin-bottom:16px;text-align:center;background:linear-gradient(135deg,rgba(124,58,237,0.07),rgba(124,58,237,0.03));">
+        <div style="font-size:36px;margin-bottom:8px;">🗣️</div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--primary);">Your Communication Score</div>
+        <div style="font-size:32px;font-weight:800;color:var(--accent);margin:8px 0;">72/100</div>
+        <div style="font-size:12px;color:var(--muted);">Above average · Keep improving!</div>
+      </div>
+      <div class="sec">Skill Areas</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🗣️</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Public Speaking</div><div class="pbg" style="margin-top:5px;"><div class="pf" style="width:65%;"></div></div></div>
+          <span style="font-size:13px;font-weight:700;color:var(--accent);">65%</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(26,107,90,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤝</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Teamwork</div><div class="pbg" style="margin-top:5px;"><div class="pf" style="width:82%;background:var(--teal);"></div></div></div>
+          <span style="font-size:13px;font-weight:700;color:var(--teal);">82%</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(232,164,90,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💡</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Critical Thinking</div><div class="pbg" style="margin-top:5px;"><div class="pf" style="width:70%;background:var(--gold);"></div></div></div>
+          <span style="font-size:13px;font-weight:700;color:var(--gold);">70%</span>
+        </div>
+        <div class="gc" style="padding:13px;display:flex;gap:12px;align-items:center;">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(196,97,42,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⏰</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Time Management</div><div class="pbg" style="margin-top:5px;"><div class="pf" style="width:58%;background:var(--rust);"></div></div></div>
+          <span style="font-size:13px;font-weight:700;color:var(--rust);">58%</span>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:14px;">Start Soft Skills Training</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     48: REFERRAL PROGRAM
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">48 · Refer & Earn</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div style="min-height:700px;background:linear-gradient(145deg,#1A0A3C 0%,#4C1D95 50%,#7C3AED 100%);padding:28px;text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+      <div style="font-size:52px;margin-bottom:16px;margin-top:16px;">🎁</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:white;line-height:1.3;margin-bottom:8px;">Invite friends,<br>earn rewards!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:28px;line-height:1.8;">For each friend who joins PathFinder AI, you both get 1 month Pro free!</div>
+      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:18px;padding:18px;margin-bottom:20px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;font-weight:700;">YOUR REFERRAL CODE</div>
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:white;letter-spacing:4px;">ARJUN2025</div>
+        <button style="margin-top:10px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📋 Copy Code</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:white;">4</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">Friends joined</div></div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#F59E0B;">4 mo</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">Pro earned</div></div>
+      </div>
+      <button style="background:white;color:var(--primary);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;">Share with Friends 📤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     49: ONBOARDING COMPLETE
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">49 · Profile Setup Complete</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="scr">
+      <div style="text-align:center;padding:24px 0 20px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(16,185,129,0.12);border:2px solid var(--accent3);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;">✅</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--primary);line-height:1.3;">Profile complete!<br>You're all set.</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;">PathFinder AI is ready to guide your career journey</div>
+      </div>
+      <div class="gc" style="margin-bottom:12px;background:linear-gradient(135deg,rgba(124,58,237,0.07),rgba(196,97,42,0.04));">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;flex-shrink:0;">✓</div><div style="font-size:13px;color:var(--text);">Personal details added</div></div>
+          <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;flex-shrink:0;">✓</div><div style="font-size:13px;color:var(--text);">Career quiz completed</div></div>
+          <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;flex-shrink:0;">✓</div><div style="font-size:13px;color:var(--text);">Skills assessed</div></div>
+          <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;flex-shrink:0;">✓</div><div style="font-size:13px;color:var(--text);">Top career match: Software Engineer (94%)</div></div>
+        </div>
+      </div>
+      <div class="sec">Your top matches</div>
+      <div style="display:flex;gap:8px;margin-bottom:18px;">
+        <div class="gc" style="flex:1;text-align:center;padding:12px;"><div style="font-size:26px;">💻</div><div style="font-size:11px;font-weight:700;color:var(--primary);margin-top:4px;">SWE</div><div style="font-size:11px;color:var(--accent);">94%</div></div>
+        <div class="gc" style="flex:1;text-align:center;padding:12px;"><div style="font-size:26px;">📊</div><div style="font-size:11px;font-weight:700;color:var(--primary);margin-top:4px;">Data Sci</div><div style="font-size:11px;color:var(--accent);">88%</div></div>
+        <div class="gc" style="flex:1;text-align:center;padding:12px;"><div style="font-size:26px;">🎨</div><div style="font-size:11px;font-weight:700;color:var(--primary);margin-top:4px;">UX</div><div style="font-size:11px;color:var(--accent);">82%</div></div>
+      </div>
+      <button class="btn">Go to Dashboard 🚀</button>
+      <button class="btn-ghost" style="margin-top:10px;">Explore All Careers</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     50: HOME DASHBOARD (WARM TRANSITION)
+═══════════════════════════════════════════════ -->
+<div>
+  <div class="lbl">50 · Home Dashboard – Transition</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="sbar"><span>9:41</span><span>● ● ▲</span></div>
+    <div style="padding:16px 20px 14px;background:linear-gradient(145deg,var(--primary),#3B0764,var(--rust));color:white;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div><div style="font-size:12px;opacity:0.65;">Good morning 🌅</div><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-top:2px;">Arjun Kumar</div></div>
+        <div style="position:relative;"><div class="av" style="width:42px;height:42px;font-size:14px;">AK</div><div style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--danger);border:2px solid white;"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">94%</div><div style="font-size:9px;opacity:0.65;">Top Match</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">🔥7</div><div style="font-size:9px;opacity:0.65;">Day Streak</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.2);">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">Top 18%</div><div style="font-size:9px;opacity:0.65;">Peers</div>
+        </div>
+      </div>
+    </div>
+    <div style="overflow-y:auto;max-height:430px;padding:14px 20px;">
+      <div class="sec">Continue Learning</div>
+      <div class="gc" style="margin-bottom:12px;display:flex;gap:12px;align-items:center;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🐍</div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Python for Beginners</div><div class="pbg" style="margin-top:6px;"><div class="pf" style="width:45%;"></div></div><div style="font-size:11px;color:var(--muted);margin-top:3px;">45% · 5 lessons left</div></div>
+        <button class="btn" style="width:auto;padding:8px 14px;font-size:12px;">Resume</button>
+      </div>
+      <div class="sec">Today's Plan</div>
+      <div class="gc" style="margin-bottom:12px;">
+        <div class="row"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;">✓</div><div style="flex:1;margin-left:8px;font-size:13px;text-decoration:line-through;color:var(--muted);">Solve 2 LeetCode problems</div></div>
+        <div class="row" style="border-bottom:none;"><div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border-g2);flex-shrink:0;"></div><div style="flex:1;margin-left:8px;font-size:13px;font-weight:600;color:var(--primary);">Read System Design Ch.2</div><span class="b-rust">Due today</span></div>
+      </div>
+      <div class="sec">Quick Actions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="gc" style="padding:12px;text-align:center;cursor:pointer;"><div style="font-size:22px;">📝</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--primary);">Career Quiz</div></div>
+        <div class="gc" style="padding:12px;text-align:center;cursor:pointer;"><div style="font-size:22px;">🎤</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--primary);">Mock Interview</div></div>
+        <div class="gc" style="padding:12px;text-align:center;cursor:pointer;"><div style="font-size:22px;">💼</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--primary);">Browse Jobs</div></div>
+        <div class="gc" style="padding:12px;text-align:center;cursor:pointer;"><div style="font-size:22px;">📄</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--primary);">Resume</div></div>
+      </div>
+    </div>
+    <div class="btab">
+      <div class="bitem on"><div class="bicon">🏠</div>Home</div>
+      <div class="bitem"><div class="bicon">🔍</div>Explore</div>
+      <div class="bitem"><div class="bicon">📝</div>Quiz</div>
+      <div class="bitem"><div class="bicon">💬</div>Chat</div>
+      <div class="bitem"><div class="bicon">👤</div>Profile</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end grid -->
+</body>
+</html>
